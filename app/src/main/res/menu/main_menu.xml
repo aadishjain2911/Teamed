@@ -2,12 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <item
+        android:icon="@android:drawable/ic_search_category_default"
+        android:title="search"
+        app:showAsAction="always" />
     <item android:id="@+id/add_activity"
         android:icon="@drawable/baseline_add_white_24dp"
         android:title="Post"
         app:showAsAction="always" />
 
-    <item android:id="@+id/settings"
+    <item android:id="@+id/action_settings"
         android:title="Settings"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_logout"
+        android:title="Logout" />
 </menu>
