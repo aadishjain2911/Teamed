@@ -66,7 +66,11 @@ public class RegisterActivity extends AppCompatActivity {
                             public void onComplete(@NonNull Task<AuthResult> task) {
 
                                 if (task.isSuccessful()) {
-                                    sendToMain() ;
+
+                                    Intent sendToSetup = new Intent(RegisterActivity.this,DetailsActivity.class) ;
+                                    startActivity(sendToSetup);
+                                    finish() ;
+
                                 }
 
                                 else {
@@ -103,6 +107,13 @@ public class RegisterActivity extends AppCompatActivity {
                 }
 
 
+            }
+        });
+
+        alreadyAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish() ;
             }
         });
 
