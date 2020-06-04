@@ -11,8 +11,9 @@
         android:title="Post"
         app:showAsAction="always" />
 
-    <item android:id="@+id/action_settings"
-        android:title="Settings"
+    <item
+        android:id="@+id/action_settings"
+        android:title="Account Settings"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_logout"

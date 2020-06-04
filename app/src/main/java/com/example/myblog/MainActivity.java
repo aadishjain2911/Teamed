@@ -70,6 +70,12 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        else if (item.getItemId() == R.id.action_settings) {
+
+            Intent sendToDetailsActivity = new Intent(MainActivity.this,DetailsActivity.class) ;
+            startActivity(sendToDetailsActivity) ;
+
+        }
         return true ;
     }
 }

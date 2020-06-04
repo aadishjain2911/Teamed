@@ -26,11 +26,16 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DetailsActivity extends AppCompatActivity {
 
@@ -46,6 +51,9 @@ public class DetailsActivity extends AppCompatActivity {
 
     private StorageReference storageReference ;
     private FirebaseAuth firebaseAuth ;
+    private FirebaseFirestore firebaseFirestore ;
+
+    private String user_id ;
 
     private ProgressBar progressBar ;
 
@@ -56,6 +64,9 @@ public class DetailsActivity extends AppCompatActivity {
 
         firebaseAuth = FirebaseAuth.getInstance() ;
         storageReference = FirebaseStorage.getInstance().getReference() ;
+        firebaseFirestore = FirebaseFirestore.getInstance() ;
+
+        user_id = firebaseAuth.getCurrentUser().getUid() ;
 
         image = (ImageView) findViewById(R.id.image) ;
         name = (EditText) findViewById(R.id.name) ;
@@ -63,6 +74,34 @@ public class DetailsActivity extends AppCompatActivity {
         year = (EditText) findViewById(R.id.year) ;
         submit = (Button) findViewById(R.id.submit_details) ;
         progressBar = (ProgressBar) findViewById(R.id.progressBar) ;
+
+        firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
+                if (task.isSuccessful()) {
+
+                    if (task.getResult().exists()) {
+
+                        String prev_name = task.getResult().getString("name") ;
+                        name.setText(prev_name) ;
+                        String prev_year = task.getResult().getString("year") ;
+                        year.setText(prev_year) ;
+                        String prev_branch = task.getResult().getString("branch") ;
+                        branch.setText(prev_branch) ;
+
+                    }
+
+                }
+                else {
+
+                    String error = task.getException().getMessage() ;
+                    Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
+
+                }
+
+            }
+        });
 
         image.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,6 +123,12 @@ public class DetailsActivity extends AppCompatActivity {
                     }
                 }
 
+                else {
+
+                    CropImage.activity().setGuidelines(CropImageView.Guidelines.ON).setAspectRatio(1,1).start(DetailsActivity.this);
+
+                }
+
             }
         });
 
@@ -92,7 +137,7 @@ public class DetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                String nm,yr,br ;
+                final String nm,yr,br ;
                 nm = name.getText().toString() ;
                 yr = year.getText().toString() ;
                 br = branch.getText().toString() ;
@@ -100,7 +145,6 @@ public class DetailsActivity extends AppCompatActivity {
                 if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(yr) && !TextUtils.isEmpty(br)) {
 
                     progressBar.setVisibility(View.VISIBLE) ;
-                    String user_id = firebaseAuth.getCurrentUser().getUid() ;
 
                     StorageReference imagepath = storageReference.child("profile_images").child(user_id+".jpg") ;
                     imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -114,6 +158,34 @@ public class DetailsActivity extends AppCompatActivity {
                                 public void onSuccess(Uri uri) {
 
                                     String imagelink = uri.toString() ;
+
+                                    Map<String, String> userInfo = new HashMap<>() ;
+                                    userInfo.put("name",nm) ;
+                                    userInfo.put("year",yr) ;
+                                    userInfo.put("branch",br) ;
+                                    userInfo.put("image",imagelink) ;
+
+                                    firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+
+                                            if (task.isSuccessful()) {
+
+                                                Toast.makeText(DetailsActivity.this,"Details updated successfully.",Toast.LENGTH_SHORT).show() ;
+                                                Intent mainintent = new Intent(DetailsActivity.this,MainActivity.class) ;
+                                                startActivity(mainintent) ;
+                                                finish() ;
+
+                                            }
+                                            else {
+
+                                                String error = task.getException().getMessage() ;
+                                                Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
+
+                                            }
+
+                                        }
+                                    }) ;
 
                                 }
                             });
