@@ -15,6 +15,9 @@ import android.widget.ImageButton;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -29,6 +32,8 @@ public class PostActivity extends AppCompatActivity {
     private static final int GALLERY_REQUEST=1 ;
 
     private StorageReference storage ;
+    private DatabaseReference mDatabase ;
+    private FirebaseAuth mAuth ;
 
     private ProgressDialog progress ;
 
@@ -38,6 +43,8 @@ public class PostActivity extends AppCompatActivity {
         setContentView(R.layout.activity_post);
 
         storage = FirebaseStorage.getInstance().getReference() ;
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("Blog") ;
+        mAuth = FirebaseAuth.getInstance() ;
 
         progress = new ProgressDialog(this) ;
 
@@ -73,8 +80,8 @@ public class PostActivity extends AppCompatActivity {
         progress.setMessage("Posting to Blog...");
         progress.show();
 
-        String nm = name.getText().toString().trim() ;
-        String desc = description.getText().toString().trim() ;
+        final String nm = name.getText().toString().trim() ;
+        final String desc = description.getText().toString().trim() ;
 
         if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(desc) && imageuri!=null) {
 
@@ -92,14 +99,25 @@ public class PostActivity extends AppCompatActivity {
 
                             String imagelink = uri.toString() ;
 
+                            DatabaseReference newpost = mDatabase.push() ;
+
+                            newpost.child("EventName").setValue(nm) ;
+                            newpost.child("Description").setValue(desc) ;
+                            newpost.child("Image").setValue(imagelink) ;
+                            newpost.child("Uid").setValue(mAuth.getCurrentUser().getUid()) ;
+
                         }
                     });
+
                 }
             });
 
         }
 
         progress.dismiss();
+
+        startActivity(new Intent(PostActivity.this,MainActivity.class)) ;
+        finish() ;
 
     }
 
