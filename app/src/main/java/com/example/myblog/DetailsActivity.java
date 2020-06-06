@@ -28,6 +28,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -159,11 +160,11 @@ public class DetailsActivity extends AppCompatActivity {
                 final String yr = year.getText().toString();
                 final String br = branch.getText().toString();
 
-                progressBar.setVisibility(View.VISIBLE);
+                if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(yr) && !TextUtils.isEmpty(br)) {
 
-                if (ischanged) {
+                    progressBar.setVisibility(View.VISIBLE);
 
-                    if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(yr) && !TextUtils.isEmpty(br)) {
+                    if (ischanged) {
 
                         StorageReference imagepath = storageReference.child("profile_images").child(user_id + ".jpg");
                         imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -175,47 +176,47 @@ public class DetailsActivity extends AppCompatActivity {
                             }
                         });
 
-                    } else {
+                    }
+                    else {
+                        String imagelink = imageuri.toString();
 
-                        if (TextUtils.isEmpty(nm)) name.setError("Please enter name.");
-                        if (TextUtils.isEmpty(yr)) year.setError("Please enter year.");
-                        if (TextUtils.isEmpty(br)) year.setError("Please enter branch.");
+                        Map<String, String> userInfo = new HashMap<>();
+                        userInfo.put("name", nm);
+                        userInfo.put("year", yr);
+                        userInfo.put("branch", br);
+                        userInfo.put("image", imagelink);
 
+                        firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+
+                                if (task.isSuccessful()) {
+
+                                    Toast.makeText(DetailsActivity.this, "Details updated successfully.", Toast.LENGTH_SHORT).show();
+                                    Intent mainintent = new Intent(DetailsActivity.this, MainActivity.class);
+                                    startActivity(mainintent);
+                                    finish();
+
+                                } else {
+
+                                    String error = task.getException().getMessage();
+                                    Toast.makeText(DetailsActivity.this, "Error : " + error, Toast.LENGTH_SHORT).show();
+
+                                }
+
+                            }
+                        });
                     }
 
+                    progressBar.setVisibility(View.INVISIBLE);
                 }
                 else {
-                    String imagelink = imageuri.toString() ;
 
-                    Map<String, String> userInfo = new HashMap<>() ;
-                    userInfo.put("name",nm) ;
-                    userInfo.put("year",yr) ;
-                    userInfo.put("branch",br) ;
-                    userInfo.put("image",imagelink) ;
-
-                    firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-
-                            if (task.isSuccessful()) {
-
-                                Toast.makeText(DetailsActivity.this,"Details updated successfully.",Toast.LENGTH_SHORT).show() ;
-                                Intent mainintent = new Intent(DetailsActivity.this,MainActivity.class) ;
-                                startActivity(mainintent) ;
-                                finish() ;
-
-                            }
-                            else {
-
-                                String error = task.getException().getMessage() ;
-                                Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
-
-                            }
-
-                        }
-                    }) ;
+                    if (TextUtils.isEmpty(nm)) name.setError("Please enter name.");
+                    if (TextUtils.isEmpty(yr)) year.setError("Please enter year.");
+                    if (TextUtils.isEmpty(br)) year.setError("Please enter branch.");
                 }
-                progressBar.setVisibility(View.INVISIBLE);
+
             }
         });
 
