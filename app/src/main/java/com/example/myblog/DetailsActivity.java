@@ -22,6 +22,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -42,6 +44,8 @@ public class DetailsActivity extends AppCompatActivity {
     private ImageView image ;
 
     private static final int GALLERY_REQUEST=1 ;
+
+    private boolean ischanged = false ;
 
     private Uri imageuri=null ;
 
@@ -75,6 +79,9 @@ public class DetailsActivity extends AppCompatActivity {
         submit = (Button) findViewById(R.id.submit_details) ;
         progressBar = (ProgressBar) findViewById(R.id.progressBar) ;
 
+        progressBar.setVisibility(View.VISIBLE) ;
+        submit.setEnabled(false) ;
+
         firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -89,16 +96,27 @@ public class DetailsActivity extends AppCompatActivity {
                         year.setText(prev_year) ;
                         String prev_branch = task.getResult().getString("branch") ;
                         branch.setText(prev_branch) ;
+                        String prev_image = task.getResult().getString("image") ;
+
+                        imageuri = Uri.parse(prev_image) ;
+
+                        RequestOptions placeHolderrequest = new RequestOptions() ;
+                        placeHolderrequest.placeholder(R.drawable.kindpng_4517876) ;
+
+                        Glide.with(DetailsActivity.this).setDefaultRequestOptions(placeHolderrequest).load(prev_image).into(image);
 
                     }
 
                 }
-                else {
+//                else {
+//
+//                    String error = task.getException().getMessage() ;
+//                    Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
+//
+//                }
 
-                    String error = task.getException().getMessage() ;
-                    Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
-
-                }
+                progressBar.setVisibility(View.INVISIBLE) ;
+                submit.setEnabled(true) ;
 
             }
         });
@@ -137,80 +155,112 @@ public class DetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                final String nm,yr,br ;
-                nm = name.getText().toString() ;
-                yr = year.getText().toString() ;
-                br = branch.getText().toString() ;
+                final String nm = name.getText().toString();
+                final String yr = year.getText().toString();
+                final String br = branch.getText().toString();
 
-                if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(yr) && !TextUtils.isEmpty(br)) {
+                progressBar.setVisibility(View.VISIBLE);
 
-                    progressBar.setVisibility(View.VISIBLE) ;
+                if (ischanged) {
 
-                    StorageReference imagepath = storageReference.child("profile_images").child(user_id+".jpg") ;
-                    imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(yr) && !TextUtils.isEmpty(br)) {
+
+                        StorageReference imagepath = storageReference.child("profile_images").child(user_id + ".jpg");
+                        imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                                storeData(taskSnapshot, nm, yr, br);
+
+                            }
+                        });
+
+                    } else {
+
+                        if (TextUtils.isEmpty(nm)) name.setError("Please enter name.");
+                        if (TextUtils.isEmpty(yr)) year.setError("Please enter year.");
+                        if (TextUtils.isEmpty(br)) year.setError("Please enter branch.");
+
+                    }
+
+                }
+                else {
+                    String imagelink = imageuri.toString() ;
+
+                    Map<String, String> userInfo = new HashMap<>() ;
+                    userInfo.put("name",nm) ;
+                    userInfo.put("year",yr) ;
+                    userInfo.put("branch",br) ;
+                    userInfo.put("image",imagelink) ;
+
+                    firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        public void onComplete(@NonNull Task<Void> task) {
 
-                            Task<Uri> downloadUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl() ;
+                            if (task.isSuccessful()) {
 
-                            downloadUrl.addOnSuccessListener(new OnSuccessListener<Uri>() {
-                                @Override
-                                public void onSuccess(Uri uri) {
+                                Toast.makeText(DetailsActivity.this,"Details updated successfully.",Toast.LENGTH_SHORT).show() ;
+                                Intent mainintent = new Intent(DetailsActivity.this,MainActivity.class) ;
+                                startActivity(mainintent) ;
+                                finish() ;
 
-                                    String imagelink = uri.toString() ;
+                            }
+                            else {
 
-                                    Map<String, String> userInfo = new HashMap<>() ;
-                                    userInfo.put("name",nm) ;
-                                    userInfo.put("year",yr) ;
-                                    userInfo.put("branch",br) ;
-                                    userInfo.put("image",imagelink) ;
+                                String error = task.getException().getMessage() ;
+                                Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
 
-                                    firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-
-                                            if (task.isSuccessful()) {
-
-                                                Toast.makeText(DetailsActivity.this,"Details updated successfully.",Toast.LENGTH_SHORT).show() ;
-                                                Intent mainintent = new Intent(DetailsActivity.this,MainActivity.class) ;
-                                                startActivity(mainintent) ;
-                                                finish() ;
-
-                                            }
-                                            else {
-
-                                                String error = task.getException().getMessage() ;
-                                                Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
-
-                                            }
-
-                                        }
-                                    }) ;
-
-                                }
-                            });
+                            }
 
                         }
-                    });
-
-                    progressBar.setVisibility(View.INVISIBLE) ;
+                    }) ;
                 }
-
-                else {
-
-                    if (TextUtils.isEmpty(nm)) name.setError("Please enter name.");
-                    if (TextUtils.isEmpty(yr)) year.setError("Please enter year.");
-                    if (TextUtils.isEmpty(br)) year.setError("Please enter branch.");
-
-                }
-
-                Intent mainintent = new Intent(DetailsActivity.this,MainActivity.class) ;
-                startActivity(mainintent) ;
-                finish() ;
-
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
 
+    }
+
+    private void storeData( UploadTask.TaskSnapshot taskSnapshot,final String nm,final String yr,final String br) {
+
+        Task<Uri> downloadUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl() ;
+
+        downloadUrl.addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+
+                String imagelink = uri.toString() ;
+
+                Map<String, String> userInfo = new HashMap<>() ;
+                userInfo.put("name",nm) ;
+                userInfo.put("year",yr) ;
+                userInfo.put("branch",br) ;
+                userInfo.put("image",imagelink) ;
+
+                firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if (task.isSuccessful()) {
+
+                            Toast.makeText(DetailsActivity.this,"Details updated successfully.",Toast.LENGTH_SHORT).show() ;
+                            Intent mainintent = new Intent(DetailsActivity.this,MainActivity.class) ;
+                            startActivity(mainintent) ;
+                            finish() ;
+
+                        }
+                        else {
+
+                            String error = task.getException().getMessage() ;
+                            Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
+
+                        }
+
+                    }
+                }) ;
+
+            }
+        });
     }
 
 
@@ -224,6 +274,8 @@ public class DetailsActivity extends AppCompatActivity {
 
                 imageuri = result.getUri();
                 image.setImageURI(imageuri) ;
+
+                ischanged = true ;
 
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
 
