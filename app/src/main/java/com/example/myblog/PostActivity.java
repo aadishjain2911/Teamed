@@ -109,7 +109,7 @@ public class PostActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(Uri uri) {
 
-                                String imagelink = imageuri.toString();
+                                String imagelink = uri.toString();
                                 Map<String, String> postInfo = new HashMap<>();
                                 postInfo.put("name", nm);
                                 postInfo.put("description", desc);
