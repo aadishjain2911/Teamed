@@ -129,6 +129,7 @@ public class PostActivity extends AppCompatActivity {
                                 postInfo.put("name", nm);
                                 postInfo.put("description", desc);
                                 postInfo.put("image_uri", uri) ;
+                                postInfo.put("image_thumb",imagelink) ;
                                 postInfo.put("user_id",user_id) ;
                                 postInfo.put("timestamp",FieldValue.serverTimestamp()) ;
 
