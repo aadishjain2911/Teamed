@@ -22,7 +22,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".PostActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">

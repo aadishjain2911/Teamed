@@ -22,17 +22,28 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+
+import io.grpc.Compressor;
+
+import static io.opencensus.tags.TagKey.MAX_LENGTH;
 
 public class PostActivity extends AppCompatActivity {
 
-        Button post ;
+    private static final int MAXLENGTH = 100;
+    Button post ;
         ImageButton image ;
         EditText name,description ;
         Uri imageuri=null ;
@@ -42,9 +53,10 @@ public class PostActivity extends AppCompatActivity {
         private static final int GALLERY_REQUEST=1 ;
 
         private StorageReference storage ;
-        private DatabaseReference mDatabase ;
         private FirebaseAuth mAuth ;
         private FirebaseFirestore firebaseFirestore ;
+
+       // private File compressedImageFile ;
 
         private String user_id ;
 
@@ -55,7 +67,6 @@ public class PostActivity extends AppCompatActivity {
 
             firebaseFirestore = FirebaseFirestore.getInstance() ;
             storage = FirebaseStorage.getInstance().getReference() ;
-            mDatabase = FirebaseDatabase.getInstance().getReference().child("Blog") ;
             mAuth = FirebaseAuth.getInstance() ;
 
             post = (Button) findViewById(R.id.postButton) ;
@@ -70,9 +81,7 @@ public class PostActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
-                    Intent galleryintent = new Intent(Intent.ACTION_GET_CONTENT) ;
-                    galleryintent.setType("image/*") ;
-                    startActivityForResult(galleryintent,GALLERY_REQUEST) ;
+                CropImage.activity().setGuidelines(CropImageView.Guidelines.ON).setAspectRatio(2,1).start(PostActivity.this);
 
                 }
             });
@@ -97,28 +106,35 @@ public class PostActivity extends AppCompatActivity {
 
                 postProgress.setVisibility(View.VISIBLE);
 
-                StorageReference imagepath = storage.child("blog_images").child(user_id + ".jpg");
+                String randomName = random() ;
+
+                StorageReference imagepath = storage.child("blog_images").child(randomName) ;
                 imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
 
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                        Task<Uri> downloadUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl();
+//                        File newimagefile = new File(imageuri.getPath()) ;
+//
+//                        compressedImageFile = new Compressor(PostActivity.this,newimagefile) ;
+
+                        final Task<Uri> downloadUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl();
 
                         downloadUrl.addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
 
                                 String imagelink = uri.toString();
-                                Map<String, String> postInfo = new HashMap<>();
+                                Map<String, Object> postInfo = new HashMap<>();
                                 postInfo.put("name", nm);
                                 postInfo.put("description", desc);
-                                postInfo.put("image", imagelink);
+                                postInfo.put("image_uri", uri) ;
+                                postInfo.put("user_id",user_id) ;
+                                postInfo.put("timestamp",FieldValue.serverTimestamp()) ;
 
-                                firebaseFirestore.collection("Posts").document(user_id).set(postInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                firebaseFirestore.collection("Posts").add(postInfo).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                                     @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-
+                                    public void onComplete(@NonNull Task<DocumentReference> task) {
                                         if (task.isSuccessful()) {
 
                                             Toast.makeText(PostActivity.this, "Posted to blog.", Toast.LENGTH_SHORT).show();
@@ -143,17 +159,42 @@ public class PostActivity extends AppCompatActivity {
                 postProgress.setVisibility(View.INVISIBLE) ;
 
             }
+
+            else {
+                if (TextUtils.isEmpty(nm)) name.setError("Please add name.");
+                if (TextUtils.isEmpty(desc)) description.setError("Please add description.");
+            }
         }
 
         @Override
         protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
             super.onActivityResult(requestCode, resultCode, data);
 
-            if (requestCode == GALLERY_REQUEST && resultCode==RESULT_OK) {
+            if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
 
-                imageuri = data.getData() ;
-                image.setImageURI(imageuri) ;
+                CropImage.ActivityResult result = CropImage.getActivityResult(data);
+                if (resultCode == RESULT_OK) {
 
+                    imageuri = result.getUri();
+                    image.setImageURI(imageuri) ;
+
+                } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+
+                    Exception error = result.getError();
+                }
             }
+
+        }
+
+        public static String random() {
+            Random generator = new Random();
+            StringBuilder randomStringBuilder = new StringBuilder();
+            int randomLength = generator.nextInt(MAXLENGTH);
+            char tempChar;
+            for (int i = 0; i < randomLength; i++){
+                tempChar = (char) (generator.nextInt(96) + 32);
+                randomStringBuilder.append(tempChar);
+            }
+            return randomStringBuilder.toString();
         }
 }
