@@ -90,8 +90,9 @@ public class PostActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
-                   startPost();
-
+                    postProgress.setVisibility(View.VISIBLE);
+                    startPost();
+                    postProgress.setVisibility(View.INVISIBLE) ;
                 }
             });
 
@@ -103,8 +104,6 @@ public class PostActivity extends AppCompatActivity {
             final String desc = description.getText().toString().trim() ;
 
             if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(desc) && imageuri!=null) {
-
-                postProgress.setVisibility(View.VISIBLE);
 
                 String randomName = random() ;
 
@@ -128,8 +127,6 @@ public class PostActivity extends AppCompatActivity {
                                 Map<String, Object> postInfo = new HashMap<>();
                                 postInfo.put("name", nm);
                                 postInfo.put("description", desc);
-                                postInfo.put("image_uri", uri) ;
-                                postInfo.put("image_thumb",imagelink) ;
                                 postInfo.put("user_id",user_id) ;
                                 postInfo.put("timestamp",FieldValue.serverTimestamp()) ;
 
@@ -157,14 +154,14 @@ public class PostActivity extends AppCompatActivity {
                     }
                 });
 
-                postProgress.setVisibility(View.INVISIBLE) ;
-
             }
 
             else {
                 if (TextUtils.isEmpty(nm)) name.setError("Please add name.");
                 if (TextUtils.isEmpty(desc)) description.setError("Please add description.");
+                if (imageuri==null) Toast.makeText(PostActivity.this, "Error : Please select an image.", Toast.LENGTH_SHORT).show();
             }
+
         }
 
         @Override

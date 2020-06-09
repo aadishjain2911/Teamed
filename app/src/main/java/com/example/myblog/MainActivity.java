@@ -45,36 +45,39 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNavigationView = (BottomNavigationView) findViewById(R.id.bottom_navigation) ;
 
-        homeFragment = new HomeFragment() ;
-        notifFragment = new NotifFragment() ;
-        settingsFragment = new SettingsFragment() ;
+        if (mAuth.getCurrentUser() != null) {
 
+            homeFragment = new HomeFragment();
+            notifFragment = new NotifFragment();
+            settingsFragment = new SettingsFragment();
 
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            replaceFragment(homeFragment);
 
-                switch(item.getItemId()) {
+            bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
-                    case R.id.bottom_home :
-                        replaceFragment(homeFragment) ;
-                        return true ;
+                    switch (item.getItemId()) {
 
-                    case R.id.bottom_notif :
-                        replaceFragment(notifFragment) ;
-                        return true ;
+                        case R.id.bottom_home:
+                            replaceFragment(homeFragment);
+                            return true;
 
-                    case R.id.bottom_settings :
-                        replaceFragment(settingsFragment) ;
-                        return true ;
+                        case R.id.bottom_notif:
+                            replaceFragment(notifFragment);
+                            return true;
 
-                    default :
-                        return false ;
+                        case R.id.bottom_settings:
+                            replaceFragment(settingsFragment);
+                            return true;
 
+                        default:
+                            return false;
+
+                    }
                 }
-            }
-        });
-
+            });
+        }
     }
 
     @Override

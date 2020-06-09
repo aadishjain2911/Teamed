@@ -1,20 +1,20 @@
 package com.example.myblog;
 
+
 import java.sql.Timestamp;
+import java.util.Date;
 
 public class BlogPost {
 
-    public String name , image_uri , description , user_id , image_thumb ;
-    public Timestamp timestamp ;
+    public String name , description , user_id ;
+    public Date timestamp ;
 
     public BlogPost() {}
 
-    public BlogPost(String name, String image_uri, String description, String user_id, String image_thumb, Timestamp timestamp) {
+    public BlogPost(String name, String description, String user_id,Date timestamp) {
         this.name = name;
-        this.image_uri = image_uri;
         this.description = description;
         this.user_id = user_id;
-        this.image_thumb = image_thumb;
         this.timestamp = timestamp;
     }
 
@@ -24,14 +24,6 @@ public class BlogPost {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getImage_uri() {
-        return image_uri;
-    }
-
-    public void setImage_uri(String image_uri) {
-        this.image_uri = image_uri;
     }
 
     public String getDescription() {
@@ -50,22 +42,12 @@ public class BlogPost {
         this.user_id = user_id;
     }
 
-    public String getImage_thumb() {
-        return image_thumb;
-    }
-
-    public void setImage_thumb(String image_thumb) {
-        this.image_thumb = image_thumb;
-    }
-
-    public Timestamp getTimestamp() {
+    public Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
-
-
 
 }
