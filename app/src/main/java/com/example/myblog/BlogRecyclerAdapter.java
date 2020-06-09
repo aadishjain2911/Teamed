@@ -67,8 +67,13 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
                 if (task.isSuccessful()) {
-                    String username = task.getResult().getString("name") ;
-                    holder.setUsername(username) ;
+
+                    if (context != null) {
+                        String username = task.getResult().getString("name");
+                        holder.setUsername(username);
+                        String image = task.getResult().getString("image");
+                        holder.setUserImage(image);
+                    }
                 }
                 else {
                     String error = task.getException().getMessage() ;

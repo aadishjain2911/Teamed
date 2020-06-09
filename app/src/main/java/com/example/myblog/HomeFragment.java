@@ -12,11 +12,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -34,47 +36,58 @@ public class HomeFragment extends Fragment {
     private FirebaseFirestore firebaseFirestore ;
     private BlogRecyclerAdapter blogRecyclerAdapter ;
 
+    private FirebaseAuth firebaseAuth ;
+
     public HomeFragment() {
         // Required empty public constructor
     }
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        blog_list = new ArrayList<>() ;
+        if (getActivity()!=null) {
 
-        blogListView = view.findViewById(R.id.blog_list_view) ;
+            blog_list = new ArrayList<>() ;
 
-        blogRecyclerAdapter = new BlogRecyclerAdapter(blog_list) ;
-        blogListView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        blogListView.setAdapter(blogRecyclerAdapter) ;
+            blogListView = view.findViewById(R.id.blog_list_view) ;
 
-        firebaseFirestore = FirebaseFirestore.getInstance() ;
-        firebaseFirestore.collection("Posts").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
+            blogRecyclerAdapter = new BlogRecyclerAdapter(blog_list) ;
+            blogListView.setLayoutManager(new LinearLayoutManager(getActivity()));
+            blogListView.setAdapter(blogRecyclerAdapter);
+            firebaseAuth = FirebaseAuth.getInstance();
 
-                for (DocumentChange doc: queryDocumentSnapshots.getDocumentChanges()) {
+            if (firebaseAuth.getCurrentUser() != null) {
 
-                    if (doc.getType() == DocumentChange.Type.ADDED) {
+                firebaseFirestore = FirebaseFirestore.getInstance();
 
-                        BlogPost blogPost = doc.getDocument().toObject(BlogPost.class) ;
-                        blog_list.add(blogPost) ;
+                Query firstQuery = firebaseFirestore.collection("Posts").orderBy("timestamp", Query.Direction.DESCENDING);
+                if (firstQuery != null) {
+                    firstQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
+                        @Override
+                        public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 
-                        blogRecyclerAdapter.notifyDataSetChanged() ;
-                    }
+                            for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
+
+                                if (doc.getType() == DocumentChange.Type.ADDED) {
+
+                                    BlogPost blogPost = doc.getDocument().toObject(BlogPost.class);
+                                    blog_list.add(blogPost);
+
+                                    blogRecyclerAdapter.notifyDataSetChanged();
+                                }
+                            }
+
+                        }
+                    });
                 }
-
             }
-        });
 
-
+        }
         // Inflate the layout for this fragment
-        return view ;
+        return view;
     }
 
 }
