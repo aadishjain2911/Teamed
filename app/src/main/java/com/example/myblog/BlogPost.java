@@ -4,7 +4,7 @@ package com.example.myblog;
 import java.sql.Timestamp;
 import java.util.Date;
 
-public class BlogPost {
+public class BlogPost extends BlogPostId{
 
     public String name , description , user_id ;
     public Date timestamp ;

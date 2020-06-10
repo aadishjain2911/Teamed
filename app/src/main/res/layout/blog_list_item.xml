@@ -7,7 +7,7 @@
     android:layout_height="wrap_content">
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/main_blog_post"
+        android:id="@+id/main_notif_post"
         android:layout_width="0dp"
         android:layout_height="300dp"
         android:layout_marginStart="8dp"
@@ -83,7 +83,6 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
                 android:background="#FFF44336"
-                android:text="CONTACT"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/button_invite"
                 app:layout_constraintStart_toStartOf="parent"
@@ -98,11 +97,34 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="8dp"
                 android:background="#FFF44336"
-                android:text="INVITE"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/description"
                 app:layout_constraintVertical_bias="1.0" />
+
+            <TextView
+                android:id="@+id/contact_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TextView"
+                app:layout_constraintBottom_toBottomOf="@id/button_contact"
+                app:layout_constraintEnd_toEndOf="@id/button_contact"
+                app:layout_constraintStart_toStartOf="@id/button_contact"
+                app:layout_constraintTop_toTopOf="@id/button_contact"
+                tools:layout_editor_absoluteX="64dp"
+                tools:layout_editor_absoluteY="258dp" />
+
+            <TextView
+                android:id="@+id/invite_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TextView"
+                app:layout_constraintBottom_toBottomOf="@id/button_invite"
+                app:layout_constraintEnd_toEndOf="@id/button_invite"
+                app:layout_constraintStart_toStartOf="@id/button_invite"
+                app:layout_constraintTop_toTopOf="@id/button_invite"
+                tools:layout_editor_absoluteX="264dp"
+                tools:layout_editor_absoluteY="258dp" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

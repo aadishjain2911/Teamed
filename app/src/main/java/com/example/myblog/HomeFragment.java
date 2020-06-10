@@ -52,7 +52,13 @@ public class HomeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_home, container, false);
+        // Inflate the layout for this fragment
+        return view;
+    }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         if (getActivity()!=null) {
 
             blog_list = new ArrayList<>() ;
@@ -103,7 +109,9 @@ public class HomeFragment extends Fragment {
 
                                     if (doc.getType() == DocumentChange.Type.ADDED) {
 
-                                        BlogPost blogPost = doc.getDocument().toObject(BlogPost.class);
+                                        String blogPostId = doc.getDocument().getId() ;
+
+                                        BlogPost blogPost = doc.getDocument().toObject(BlogPost.class).withId(blogPostId) ;
 
                                         if (isFirstPageFirstLoad) {
 
@@ -127,8 +135,7 @@ public class HomeFragment extends Fragment {
             }
 
         }
-        // Inflate the layout for this fragment
-        return view;
+
     }
 
     public void loadMorePosts () {
@@ -149,7 +156,9 @@ public class HomeFragment extends Fragment {
 
                             if (doc.getType() == DocumentChange.Type.ADDED) {
 
-                                BlogPost blogPost = doc.getDocument().toObject(BlogPost.class);
+                                String blogPostId = doc.getDocument().getId() ;
+
+                                BlogPost blogPost = doc.getDocument().toObject(BlogPost.class).withId(blogPostId) ;
                                 blog_list.add(blogPost);
 
                                 blogRecyclerAdapter.notifyDataSetChanged();
