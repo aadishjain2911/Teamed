@@ -40,9 +40,11 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class DetailsActivity extends AppCompatActivity {
 
-    private ImageView image ;
+    private CircleImageView image ;
 
     private static final int GALLERY_REQUEST=1 ;
 
@@ -73,14 +75,13 @@ public class DetailsActivity extends AppCompatActivity {
 
         user_id = firebaseAuth.getCurrentUser().getUid() ;
 
-        image = (ImageView) findViewById(R.id.image) ;
+        image = (CircleImageView) findViewById(R.id.image) ;
         name = (EditText) findViewById(R.id.name) ;
         branch = (EditText) findViewById(R.id.branch) ;
         year = (EditText) findViewById(R.id.year) ;
         submit = (Button) findViewById(R.id.submit_details) ;
         progressBar = (ProgressBar) findViewById(R.id.progressBar) ;
 
-        progressBar.setVisibility(View.VISIBLE) ;
         submit.setEnabled(false) ;
 
         firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -90,6 +91,8 @@ public class DetailsActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
 
                     if (task.getResult().exists()) {
+
+                        progressBar.setVisibility(View.VISIBLE) ;
 
                         String prev_name = task.getResult().getString("name") ;
                         name.setText(prev_name) ;
@@ -106,17 +109,17 @@ public class DetailsActivity extends AppCompatActivity {
 
                         Glide.with(DetailsActivity.this).setDefaultRequestOptions(placeHolderrequest).load(prev_image).into(image);
 
+                        progressBar.setVisibility(View.INVISIBLE) ;
                     }
 
                 }
-//                else {
-//
-//                    String error = task.getException().getMessage() ;
-//                    Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
-//
-//                }
+                else {
 
-                progressBar.setVisibility(View.INVISIBLE) ;
+                    String error = task.getException().getMessage() ;
+                    Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
+
+                }
+
                 submit.setEnabled(true) ;
 
             }

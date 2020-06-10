@@ -83,7 +83,10 @@ public class HomeFragment extends Fragment {
                     }
                 });
 
+
+
                 Query firstQuery = firebaseFirestore.collection("Posts").orderBy("timestamp", Query.Direction.DESCENDING).limit(3) ;
+
                 if (firstQuery != null) {
                     firstQuery.addSnapshotListener(getActivity(),new EventListener<QuerySnapshot>() {
                         @Override
@@ -94,24 +97,26 @@ public class HomeFragment extends Fragment {
                                 lastVisible = queryDocumentSnapshots.getDocuments().get(queryDocumentSnapshots.size() - 1);
 
                             }
-                            for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
+                            if (queryDocumentSnapshots != null) {
 
-                                if (doc.getType() == DocumentChange.Type.ADDED) {
+                                for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
 
-                                    BlogPost blogPost = doc.getDocument().toObject(BlogPost.class);
+                                    if (doc.getType() == DocumentChange.Type.ADDED) {
 
-                                    if (isFirstPageFirstLoad) {
+                                        BlogPost blogPost = doc.getDocument().toObject(BlogPost.class);
 
-                                        blog_list.add(blogPost);
+                                        if (isFirstPageFirstLoad) {
 
+                                            blog_list.add(blogPost);
+
+                                        } else {
+
+                                            blog_list.add(0, blogPost);
+
+                                        }
+
+                                        blogRecyclerAdapter.notifyDataSetChanged();
                                     }
-                                    else {
-
-                                        blog_list.add(0,blogPost) ;
-
-                                    }
-
-                                    blogRecyclerAdapter.notifyDataSetChanged();
                                 }
                             }
 
