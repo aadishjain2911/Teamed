@@ -2,7 +2,6 @@ package com.example.myblog;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -32,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     private HomeFragment homeFragment ;
     private NotifFragment notifFragment ;
-    private SettingsFragment settingsFragment ;
+    private BookmarksFragment bookmarksFragment ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
             homeFragment = new HomeFragment();
             notifFragment = new NotifFragment();
-            settingsFragment = new SettingsFragment();
+            bookmarksFragment = new BookmarksFragment();
 
             //replaceFragment(homeFragment);
 
@@ -67,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
                             replaceFragment(notifFragment);
                             return true;
 
-                        case R.id.bottom_settings:
-                            replaceFragment(settingsFragment);
+                        case R.id.bottom_bookmarks:
+                            replaceFragment(bookmarksFragment);
                             return true;
 
                         default:

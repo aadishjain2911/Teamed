@@ -13,8 +13,8 @@
         android:title="Notifications"
         android:visible="true" />
     <item
-        android:id="@+id/bottom_settings"
-        android:icon="@drawable/baseline_settings_white_24dp"
-        android:title="Settings"
+        android:id="@+id/bottom_bookmarks"
+        android:icon="@drawable/baseline_bookmarks_black_24dp"
+        android:title="Bookmarks"
         android:visible="true" />
 </menu>

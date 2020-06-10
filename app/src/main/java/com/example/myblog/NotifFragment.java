@@ -97,7 +97,7 @@ public class NotifFragment extends Fragment {
 
 
 
-                Query firstQuery = firebaseFirestore.collection("Users/"+currentUserId+"Contacts_Invites").orderBy("timestamp", Query.Direction.DESCENDING).limit(5) ;
+                Query firstQuery = firebaseFirestore.collection("Users/"+currentUserId+"ContactsInvites").orderBy("timestamp", Query.Direction.DESCENDING).limit(5) ;
 
                 if (firstQuery != null) {
                     firstQuery.addSnapshotListener(getActivity(),new EventListener<QuerySnapshot>() {
@@ -146,7 +146,7 @@ public class NotifFragment extends Fragment {
 
     public void loadMoreNotifs () {
 
-        Query nextQuery = firebaseFirestore.collection("Users/"+currentUserId+"Contacts_Invites")
+        Query nextQuery = firebaseFirestore.collection("Users/"+currentUserId+"ContactsInvites")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .startAfter(lastVisible)
                 .limit(5) ;

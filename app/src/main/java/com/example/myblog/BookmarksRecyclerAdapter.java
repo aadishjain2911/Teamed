@@ -34,52 +34,51 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 import static androidx.appcompat.content.res.AppCompatResources.getDrawable;
 
-public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapter.ViewHolder> {
+public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecyclerAdapter.ViewHolder> {
 
-    public List<BlogPost> blog_list ;
+    public List<BookmarksPost> bookmarks_list ;
 
     private FirebaseFirestore firebaseFirestore ;
     private FirebaseAuth firebaseAuth ;
 
     private Context context;
-
-    public BlogRecyclerAdapter(Context context){
+    public BookmarksRecyclerAdapter(Context context){
         this.context=context;
     }
 
-    public BlogRecyclerAdapter(List<BlogPost> blog_list) {
+    public BookmarksRecyclerAdapter(List<BookmarksPost> bookmarks_list) {
 
-        this.blog_list = blog_list ;
+        this.bookmarks_list = bookmarks_list ;
 
     }
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public BookmarksRecyclerAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.blog_list_item,parent,false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.bookmark_list_item,parent,false);
 
         firebaseFirestore = FirebaseFirestore.getInstance() ;
         firebaseAuth = FirebaseAuth.getInstance() ;
-        return new ViewHolder(view) ;
+        return new BookmarksRecyclerAdapter.ViewHolder(view) ;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final BookmarksRecyclerAdapter.ViewHolder holder, int position) {
 
         holder.setIsRecyclable(false) ;
 
-        final String blogPostId = blog_list.get(position).BlogPostId ;
+        final String bookmarksPostId = bookmarks_list.get(position).BookmarksPostId ;
         final String currentUserId = firebaseAuth.getCurrentUser().getUid() ;
 
         holder.setView();
 
-        String desc_data = blog_list.get(position).getDescription() ;
+        String desc_data = bookmarks_list.get(position).getDescription() ;
         holder.setDescText(desc_data) ;
 
-        String name_data = blog_list.get(position).getName() ;
+        String name_data = bookmarks_list.get(position).getName() ;
         holder.setNameText(name_data);
 
-        final String user_id = blog_list.get(position).getUser_id() ;
+        final String user_id = bookmarks_list.get(position).getUser_id() ;
 
 
         firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -102,7 +101,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
             }
         });
 
-        long milliseconds = blog_list.get(position).getTimestamp().getTime() ;
+        long milliseconds = bookmarks_list.get(position).getTimestamp().getTime() ;
         String dateString = DateFormat.format("dd/mm/yyyy", new Date(milliseconds)).toString();
         holder.setTime(dateString) ;
 
@@ -122,10 +121,10 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
                             String name = task.getResult().getString("name") ;
                             String image = task.getResult().getString("image");
                             notifMap.put("sender_image",image);
-                            notifMap.put("blogPostId", blogPostId) ;
+                            notifMap.put("blogPostId", bookmarksPostId) ;
                             notifMap.put("sender_name", name) ;
                             notifMap.put("notif_type","contacted") ;
-                            notifMap.put("timestamp",FieldValue.serverTimestamp()) ;
+                            notifMap.put("timestamp", FieldValue.serverTimestamp()) ;
                             firebaseFirestore.collection("Users/"+user_id+"/ContactsInvites").document(currentUserId).set(notifMap) ;
                         }
                     }
@@ -152,7 +151,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
                             String name = task.getResult().getString("name") ;
                             String image = task.getResult().getString("image");
                             notifMap.put("sender_image",image);
-                            notifMap.put("blogPostId", blogPostId) ;
+                            notifMap.put("blogPostId", bookmarksPostId) ;
                             notifMap.put("sender_name", name) ;
                             notifMap.put("notif_type","invited") ;
                             notifMap.put("timestamp",FieldValue.serverTimestamp()) ;
@@ -163,7 +162,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
             }
         });
 
-        firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(blogPostId).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+        firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(bookmarksPostId).addSnapshotListener(new EventListener<DocumentSnapshot>() {
             @Override
             public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
 
@@ -183,7 +182,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
             @Override
             public void onClick(View v) {
 
-                firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(blogPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
@@ -192,14 +191,14 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
                             Map<String, Object> bookmarksMap = new HashMap<>() ;
 
                             bookmarksMap.put("timestamp",FieldValue.serverTimestamp()) ;
-                            firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(blogPostId).set(bookmarksMap) ;
+                            firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(bookmarksPostId).set(bookmarksMap) ;
 
                             Toast.makeText(context,"Added to your bookmarks.",Toast.LENGTH_SHORT).show();
 
                         }
                         else {
 
-                            firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(blogPostId).delete() ;
+                            firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(bookmarksPostId).delete() ;
                             Toast.makeText(context,"Removed from your bookmarks.",Toast.LENGTH_SHORT).show();
 
                         }
@@ -214,7 +213,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
 
     @Override
     public int getItemCount() {
-        return blog_list.size();
+        return bookmarks_list.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -295,5 +294,4 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
 
         }
     }
-
 }
