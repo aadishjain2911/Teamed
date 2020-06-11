@@ -64,7 +64,7 @@ public class BookmarksFragment extends Fragment {
 
             bookmarks_list = new ArrayList<>() ;
 
-            bookmarksListView = view.findViewById(R.id.blog_list_view) ;
+            bookmarksListView = view.findViewById(R.id.bookmarks_list_view) ;
 
             bookmarksRecyclerAdapter = new BookmarksRecyclerAdapter(bookmarks_list) ;
             bookmarksListView.setLayoutManager(new LinearLayoutManager(getActivity()));

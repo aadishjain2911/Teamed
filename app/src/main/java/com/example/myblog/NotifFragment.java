@@ -66,7 +66,7 @@ public class NotifFragment extends Fragment {
 
             notif_list = new ArrayList<>() ;
 
-            notifListView = view.findViewById(R.id.blog_list_view) ;
+            notifListView = view.findViewById(R.id.notif_list_view) ;
 
             notifRecyclerAdapter = new NotifRecyclerAdapter(notif_list) ;
             notifListView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -97,7 +97,7 @@ public class NotifFragment extends Fragment {
 
 
 
-                Query firstQuery = firebaseFirestore.collection("Users/"+currentUserId+"ContactsInvites").orderBy("timestamp", Query.Direction.DESCENDING).limit(5) ;
+                Query firstQuery = firebaseFirestore.collection("Users/"+currentUserId+"/ContactsInvites").orderBy("timestamp", Query.Direction.DESCENDING).limit(5) ;
 
                 if (firstQuery != null) {
                     firstQuery.addSnapshotListener(getActivity(),new EventListener<QuerySnapshot>() {
