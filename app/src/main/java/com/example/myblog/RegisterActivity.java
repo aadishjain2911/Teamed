@@ -113,6 +113,8 @@ public class RegisterActivity extends AppCompatActivity {
         alreadyAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent sendToLogin = new Intent(RegisterActivity.this,LoginActivity.class) ;
+                startActivity(sendToLogin) ;
                 finish() ;
             }
         });
