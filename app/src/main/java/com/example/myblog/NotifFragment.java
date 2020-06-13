@@ -1,6 +1,7 @@
 package com.example.myblog;
 
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -41,6 +42,8 @@ public class NotifFragment extends Fragment {
 
     private DocumentSnapshot lastVisible ;
 
+    private Context context ;
+
     private Boolean isFirstPageFirstLoad = true ;
 
     private String currentUserId ;
@@ -49,6 +52,11 @@ public class NotifFragment extends Fragment {
         // Required empty public constructor
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context ;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -68,7 +76,7 @@ public class NotifFragment extends Fragment {
 
             notifListView = view.findViewById(R.id.notif_list_view) ;
 
-            notifRecyclerAdapter = new NotifRecyclerAdapter(notif_list) ;
+            notifRecyclerAdapter = new NotifRecyclerAdapter(notif_list,context) ;
             notifListView.setLayoutManager(new LinearLayoutManager(getActivity()));
             notifListView.setAdapter(notifRecyclerAdapter);
 
@@ -100,11 +108,11 @@ public class NotifFragment extends Fragment {
                 Query firstQuery = firebaseFirestore.collection("Users/"+currentUserId+"/ContactsInvites").orderBy("timestamp", Query.Direction.DESCENDING).limit(5) ;
 
                 if (firstQuery != null) {
-                    firstQuery.addSnapshotListener(getActivity(),new EventListener<QuerySnapshot>() {
+                    firstQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
                         @Override
                         public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 
-                            if (isFirstPageFirstLoad) {
+                            if (isFirstPageFirstLoad && queryDocumentSnapshots.size()!=0) {
 
                                 lastVisible = queryDocumentSnapshots.getDocuments().get(queryDocumentSnapshots.size() - 1);
 
@@ -146,7 +154,7 @@ public class NotifFragment extends Fragment {
 
     public void loadMoreNotifs () {
 
-        Query nextQuery = firebaseFirestore.collection("Users/"+currentUserId+"ContactsInvites")
+        Query nextQuery = firebaseFirestore.collection("Users/"+currentUserId+"/ContactsInvites")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
                 .startAfter(lastVisible)
                 .limit(5) ;

@@ -2,6 +2,7 @@ package com.example.myblog;
 
 import android.content.Context;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,12 +36,10 @@ public class NotifRecyclerAdapter extends RecyclerView.Adapter<NotifRecyclerAdap
 
     private Context context;
 
-    public NotifRecyclerAdapter(Context context){
-        this.context=context;
-    }
+    public NotifRecyclerAdapter(List<NotifPost> notif_list,Context context) {
 
-    public NotifRecyclerAdapter(List<NotifPost> notif_list) {
         this.notif_list = notif_list;
+        this.context=context;
     }
 
     @NonNull
@@ -61,41 +60,25 @@ public class NotifRecyclerAdapter extends RecyclerView.Adapter<NotifRecyclerAdap
 
         final String currentUserId = firebaseAuth.getCurrentUser().getUid() ;
         final String blogPostId = notif_list.get(position).getBlogPostId() ;
-        final String senderId = notif_list.get(position).getSender_user_id() ;
-        final String type = notif_list.get(position).getType() ;
+        final String sendername = notif_list.get(position).getSender_name() ;
+        final String senderimage = notif_list.get(position).getSender_image() ;
+        final String type = notif_list.get(position).getNotif_type() ;
+        final String eventname = notif_list.get(position).getEvent_name() ;
 
         long milliseconds = notif_list.get(position).getTimestamp().getTime() ;
-        String dateString = DateFormat.format("dd/mm/yyyy", new Date(milliseconds)).toString();
+        String dateString = DateFormat.format("MM/dd/yyyy", new Date(milliseconds)).toString();
         holder.setTime(dateString);
 
-        firebaseFirestore.collection("Users").document(senderId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                if (task.isSuccessful()) {
-                    String name = task.getResult().getString("name") ;
-                    holder.addName(name) ;
-                    String image = task.getResult().getString("image") ;
-                    holder.addImage(image) ;
-                }
+        if (currentUserId != null) {
 
-            }
-        });
+            holder.addName(sendername);
 
-        firebaseFirestore.collection("Posts").document(blogPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+            holder.addImage(senderimage);
 
-                if (task.isSuccessful()) {
-                    String eventname = task.getResult().getString("name") ;
-                    holder.addEvent(eventname) ;
-                }
+            holder.setMessage(type,eventname) ;
 
-            }
-        });
-
-        holder.setMessage(type) ;
-
+        }
     }
 
     public int getItemCount() {
@@ -112,7 +95,7 @@ public class NotifRecyclerAdapter extends RecyclerView.Adapter<NotifRecyclerAdap
 
         private View mView ;
 
-        private String sender_name, sender_image , event_name;
+        private String sender_name, sender_image ;
 
         public ViewHolder (@Nonnull View itemview) {
             super(itemview) ;
@@ -136,18 +119,15 @@ public class NotifRecyclerAdapter extends RecyclerView.Adapter<NotifRecyclerAdap
             sender_image = image ;
         }
 
-        public void addEvent(String eventname) {
-            event_name = eventname ;
-        }
-
-        public void setMessage(final String type) {
+        public void setMessage(final String type,final String event_name) {
 
             notif_view = mView.findViewById(R.id.notif_textview) ;
-            notif_view.setText(sender_name+"has "+type+" you for the event "+event_name+". Tell him if you are interested.") ;
+            notif_view.setText(sender_name+" has "+type+" you for the event "+event_name+". Tell him if you are interested.") ;
 
             RequestOptions placeholderoption = new RequestOptions() ;
             placeholderoption.placeholder(R.drawable.kindpng_4517876) ;
             Glide.with(context).applyDefaultRequestOptions(placeholderoption).load(sender_image).into(sender_imageview) ;
+
         }
     }
 }

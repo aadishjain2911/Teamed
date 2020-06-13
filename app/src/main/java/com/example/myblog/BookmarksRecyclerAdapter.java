@@ -1,6 +1,7 @@
 package com.example.myblog;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,13 +43,11 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
     private FirebaseAuth firebaseAuth ;
 
     private Context context;
-    public BookmarksRecyclerAdapter(Context context){
-        this.context=context;
-    }
 
-    public BookmarksRecyclerAdapter(List<BookmarksPost> bookmarks_list) {
+    public BookmarksRecyclerAdapter(List<BookmarksPost> bookmarks_list,Context context) {
 
         this.bookmarks_list = bookmarks_list ;
+        this.context=context;
 
     }
     @NonNull
@@ -70,8 +69,6 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
         final String bookmarksPostId = bookmarks_list.get(position).BookmarksPostId ;
         final String currentUserId = firebaseAuth.getCurrentUser().getUid() ;
 
-        holder.setView();
-
         String desc_data = bookmarks_list.get(position).getDescription() ;
         holder.setDescText(desc_data) ;
 
@@ -80,135 +77,135 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
 
         final String user_id = bookmarks_list.get(position).getUser_id() ;
 
+        if (currentUserId != null) {
 
-        firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+            firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                if (task.isSuccessful()) {
+                    if (task.isSuccessful()) {
 
-                    if (context != null) {
-                        String username = task.getResult().getString("name");
-                        holder.setUsername(username);
-                        String image = task.getResult().getString("image");
-                        holder.setUserImage(image);
-                    }
-                }
-                else {
-                    String error = task.getException().getMessage() ;
-                    Toast.makeText(context, " Error : " + error, Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        long milliseconds = bookmarks_list.get(position).getTimestamp().getTime() ;
-        String dateString = DateFormat.format("dd/mm/yyyy", new Date(milliseconds)).toString();
-        holder.setTime(dateString) ;
-
-        holder.contact.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                holder.con_text.setText("CONTACTED");
-                holder.con_text.setTextColor(0xFFFFFF) ;
-
-                firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-
-                            Map<String, Object> notifMap = new HashMap<>() ;
-                            String name = task.getResult().getString("name") ;
+                        if (context != null) {
+                            String username = task.getResult().getString("name");
+                            holder.setUsername(username);
                             String image = task.getResult().getString("image");
-                            notifMap.put("sender_image",image);
-                            notifMap.put("blogPostId", bookmarksPostId) ;
-                            notifMap.put("sender_name", name) ;
-                            notifMap.put("notif_type","contacted") ;
-                            notifMap.put("timestamp", FieldValue.serverTimestamp()) ;
-                            firebaseFirestore.collection("Users/"+user_id+"/ContactsInvites").document(currentUserId).set(notifMap) ;
+                            holder.setUserImage(image);
                         }
+                    } else {
+                        String error = task.getException().getMessage();
+                        Toast.makeText(context, " Error : " + error, Toast.LENGTH_SHORT).show();
                     }
-                }) ;
-            }
-        });
-
-        holder.invite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Map<String,Object> invitesMap = new HashMap<>() ;
-                invitesMap.put("timestamp", FieldValue.serverTimestamp()) ;
-
-                holder.inv_text.setText("INVITED");
-                holder.inv_text.setTextColor(0xFFFFFF);
-
-                firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-
-                            Map<String, Object> notifMap = new HashMap<>() ;
-                            String name = task.getResult().getString("name") ;
-                            String image = task.getResult().getString("image");
-                            notifMap.put("sender_image",image);
-                            notifMap.put("blogPostId", bookmarksPostId) ;
-                            notifMap.put("sender_name", name) ;
-                            notifMap.put("notif_type","invited") ;
-                            notifMap.put("timestamp",FieldValue.serverTimestamp()) ;
-                            firebaseFirestore.collection("Users/"+user_id+"/ContactsInvites").document(currentUserId).set(notifMap) ;
-                        }
-                    }
-                }) ;
-            }
-        });
-
-        firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(bookmarksPostId).addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
-
-                if (documentSnapshot.exists()) {
-
-                    holder.bookmark_image.setImageDrawable(getDrawable(context,R.mipmap.action_bookmark_filled));
-
                 }
-                else {
+            });
 
-                    holder.bookmark_image.setImageDrawable(getDrawable(context,R.mipmap.action_bookmark_border));
+            long milliseconds = bookmarks_list.get(position).getTimestamp().getTime();
+            String dateString = DateFormat.format("MM/dd/yyyy", new Date(milliseconds)).toString();
+            holder.setTime(dateString);
+
+            holder.contact.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    holder.contact.setText("CONTACTED");
+                    holder.contact.setBackgroundColor(Color.LTGRAY);
+
+                    firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+
+                                Map<String, Object> notifMap = new HashMap<>();
+                                String name = task.getResult().getString("name");
+                                String image = task.getResult().getString("image");
+                                notifMap.put("sender_image", image);
+                                notifMap.put("blogPostId", bookmarksPostId);
+                                notifMap.put("sender_name", name);
+                                notifMap.put("notif_type", "contacted");
+                                notifMap.put("timestamp", FieldValue.serverTimestamp());
+                                firebaseFirestore.collection("Users/" + user_id + "/ContactsInvites").document(currentUserId).set(notifMap);
+                            }
+                        }
+                    });
                 }
-            }
-        });
+            });
 
-        holder.bookmark_image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            holder.invite.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
-                firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    Map<String, Object> invitesMap = new HashMap<>();
+                    invitesMap.put("timestamp", FieldValue.serverTimestamp());
 
-                        if (!task.getResult().exists()) {
+                    holder.invite.setText("INVITED");
+                    holder.invite.setBackgroundColor(Color.LTGRAY);
 
-                            Map<String, Object> bookmarksMap = new HashMap<>() ;
+                    firebaseFirestore
+                            .collection("Users")
+                            .document(currentUserId)
+                            .get()
+                            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
 
-                            bookmarksMap.put("timestamp",FieldValue.serverTimestamp()) ;
-                            firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(bookmarksPostId).set(bookmarksMap) ;
-
-                            Toast.makeText(context,"Added to your bookmarks.",Toast.LENGTH_SHORT).show();
-
+                                Map<String, Object> notifMap = new HashMap<>();
+                                String name = task.getResult().getString("name");
+                                String image = task.getResult().getString("image");
+                                notifMap.put("sender_image", image);
+                                notifMap.put("blogPostId", bookmarksPostId);
+                                notifMap.put("sender_name", name);
+                                notifMap.put("notif_type", "invited");
+                                notifMap.put("timestamp", FieldValue.serverTimestamp());
+                                firebaseFirestore.collection("Users/" + user_id + "/ContactsInvites").document(currentUserId).set(notifMap);
+                            }
                         }
-                        else {
+                    });
+                }
+            });
 
-                            firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(bookmarksPostId).delete() ;
-                            Toast.makeText(context,"Removed from your bookmarks.",Toast.LENGTH_SHORT).show();
+            firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(bookmarksPostId).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                @Override
+                public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
 
-                        }
+                    if (documentSnapshot.exists()) {
+
+                        holder.bookmark_image.setImageResource(R.mipmap.action_bookmark_filled);
+
+                    } else {
+
+                        holder.bookmark_image.setImageResource(R.mipmap.action_bookmark_border);
                     }
-                });
+                }
+            });
 
+            holder.bookmark_image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
+                    firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-            }
-        });
+                            if (!task.getResult().exists()) {
+
+                                Map<String, Object> bookmarksMap = new HashMap<>();
+
+                                bookmarksMap.put("timestamp", FieldValue.serverTimestamp());
+                                firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(bookmarksPostId).set(bookmarksMap);
+
+                                Toast.makeText(context, "Added to your bookmarks.", Toast.LENGTH_SHORT).show();
+
+                            } else {
+
+                                firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(bookmarksPostId).delete();
+                                Toast.makeText(context, "Removed from your bookmarks.", Toast.LENGTH_SHORT).show();
+
+                            }
+                        }
+                    });
+                }
+            });
+        }
     }
 
     @Override
@@ -232,8 +229,6 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
 
         private Button contact, invite ;
 
-        private TextView con_text, inv_text ;
-
         private ImageView bookmark_image ;
 
         public ViewHolder(@NonNull View itemView) {
@@ -243,8 +238,6 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
 
             contact = mView.findViewById(R.id.button_contact) ;
             invite = mView.findViewById(R.id.button_invite) ;
-            con_text = mView.findViewById(R.id.contact_text) ;
-            inv_text = mView.findViewById(R.id.invite_text) ;
             bookmark_image = mView.findViewById(R.id.image_bookmark) ;
 
         }
@@ -287,11 +280,5 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
 
         }
 
-        public void setView() {
-
-            con_text.setText("CONTACT");
-            inv_text.setText("INVITE") ;
-
-        }
     }
 }

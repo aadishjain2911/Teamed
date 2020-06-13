@@ -1,11 +1,13 @@
 package com.example.myblog;
 
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -44,10 +46,17 @@ public class HomeFragment extends Fragment {
 
     private Boolean isFirstPageFirstLoad = true ;
 
+    private Context context ;
+
     public HomeFragment() {
         // Required empty public constructor
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context ;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -67,7 +76,7 @@ public class HomeFragment extends Fragment {
 
             blogListView = view.findViewById(R.id.blog_list_view) ;
 
-            blogRecyclerAdapter = new BlogRecyclerAdapter(blog_list) ;
+            blogRecyclerAdapter = new BlogRecyclerAdapter(blog_list,context) ;
             blogListView.setLayoutManager(new LinearLayoutManager(getActivity()));
             blogListView.setAdapter(blogRecyclerAdapter);
             firebaseAuth = FirebaseAuth.getInstance();
@@ -92,11 +101,13 @@ public class HomeFragment extends Fragment {
                 });
 
 
-
-                Query firstQuery = firebaseFirestore.collection("Posts").orderBy("timestamp", Query.Direction.DESCENDING).limit(3) ;
+                Query firstQuery ;
+                firstQuery = firebaseFirestore.collection("Posts").orderBy("timestamp", Query.Direction.DESCENDING).limit(3) ;
 
                 if (firstQuery != null) {
-                    firstQuery.addSnapshotListener(getActivity(),new EventListener<QuerySnapshot>() {
+
+                    firstQuery.addSnapshotListener(
+                                    new EventListener<QuerySnapshot>() {
                         @Override
                         public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 
@@ -149,7 +160,7 @@ public class HomeFragment extends Fragment {
                 startAfter(lastVisible).
                 limit(3) ;
         if (nextQuery != null) {
-            nextQuery.addSnapshotListener(getActivity(),new EventListener<QuerySnapshot>() {
+            nextQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
                 @Override
                 public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 

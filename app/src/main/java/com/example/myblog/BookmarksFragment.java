@@ -1,6 +1,7 @@
 package com.example.myblog;
 
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -45,12 +46,17 @@ public class BookmarksFragment extends Fragment {
 
     private DocumentSnapshot lastVisible ;
 
+    private Context context ;
+
     private Boolean isFirstPageFirstLoad = true ;
     public BookmarksFragment() {
         // Required empty public constructor
     }
-
-
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        this.context = context ;
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -68,7 +74,7 @@ public class BookmarksFragment extends Fragment {
 
             bookmarksListView = view.findViewById(R.id.bookmarks_list_view) ;
 
-            bookmarksRecyclerAdapter = new BookmarksRecyclerAdapter(bookmarks_list) ;
+            bookmarksRecyclerAdapter = new BookmarksRecyclerAdapter(bookmarks_list,context) ;
             bookmarksListView.setLayoutManager(new LinearLayoutManager(getActivity()));
             bookmarksListView.setAdapter(bookmarksRecyclerAdapter);
             firebaseAuth = FirebaseAuth.getInstance();
@@ -99,7 +105,7 @@ public class BookmarksFragment extends Fragment {
                 Query firstQuery = firebaseFirestore.collection("Posts").orderBy("timestamp", Query.Direction.DESCENDING).limit(3) ;
 
                 if (firstQuery != null) {
-                    firstQuery.addSnapshotListener(getActivity(),new EventListener<QuerySnapshot>() {
+                    firstQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
                         @Override
                         public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 
@@ -117,7 +123,7 @@ public class BookmarksFragment extends Fragment {
                                         String bookmarksPostId = doc.getDocument().getId() ;
                                         final BookmarksPost bookmarksPost = doc.getDocument().toObject(BookmarksPost.class).withId(bookmarksPostId) ;
 
-                                        firebaseFirestore.collection("Users"+currentUserId+"/Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        firebaseFirestore.collection("Users/"+currentUserId+"/Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                             @Override
                                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 

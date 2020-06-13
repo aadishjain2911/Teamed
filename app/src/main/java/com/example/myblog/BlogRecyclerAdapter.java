@@ -1,7 +1,11 @@
 package com.example.myblog;
 
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +16,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.manager.Lifecycle;
+import com.bumptech.glide.manager.LifecycleListener;
+import com.bumptech.glide.manager.RequestManagerTreeNode;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -25,10 +34,12 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 
+import java.lang.ref.WeakReference;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -41,17 +52,17 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
     private FirebaseFirestore firebaseFirestore ;
     private FirebaseAuth firebaseAuth ;
 
-    private Context context;
+    private Context context ;
 
-    public BlogRecyclerAdapter(Context context){
-        this.context=context;
-    }
+    private CircleImageView blogUserImage ;
 
-    public BlogRecyclerAdapter(List<BlogPost> blog_list) {
+    public BlogRecyclerAdapter(List<BlogPost> blog_list,Context context) {
 
         this.blog_list = blog_list ;
+        this.context = context;
 
     }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -71,145 +82,152 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
         final String blogPostId = blog_list.get(position).BlogPostId ;
         final String currentUserId = firebaseAuth.getCurrentUser().getUid() ;
 
-        holder.setView();
-
         String desc_data = blog_list.get(position).getDescription() ;
         holder.setDescText(desc_data) ;
 
-        String name_data = blog_list.get(position).getName() ;
+        final String name_data = blog_list.get(position).getName() ;
         holder.setNameText(name_data);
 
         final String user_id = blog_list.get(position).getUser_id() ;
 
 
-        firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+        if (currentUserId != null) {
 
-                if (task.isSuccessful()) {
+            firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                    if (context != null) {
+                    if (task.isSuccessful()) {
+
                         String username = task.getResult().getString("name");
                         holder.setUsername(username);
                         String image = task.getResult().getString("image");
-                        holder.setUserImage(image);
+                        holder.setUserImage(image) ;
+
+                    } else {
+
+                        String error = task.getException().getMessage();
+                        Toast.makeText(context, " Error : " + error, Toast.LENGTH_SHORT).show();
+
                     }
                 }
-                else {
-                    String error = task.getException().getMessage() ;
-                    Toast.makeText(context, " Error : " + error, Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+            });
 
-        long milliseconds = blog_list.get(position).getTimestamp().getTime() ;
-        String dateString = DateFormat.format("dd/mm/yyyy", new Date(milliseconds)).toString();
-        holder.setTime(dateString) ;
+            long milliseconds = blog_list.get(position).getTimestamp().getTime();
+            String dateString = DateFormat.format("MM/dd/yyyy", new Date(milliseconds)).toString();
+            holder.setTime(dateString);
 
-        holder.contact.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            holder.contact.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
-                holder.con_text.setText("CONTACTED");
-                holder.con_text.setTextColor(0xFFFFFF) ;
+                    holder.contact.setText("CONTACTED");
+                    holder.contact.setBackgroundColor(Color.LTGRAY);
 
-                firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
+                    firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
 
-                            Map<String, Object> notifMap = new HashMap<>() ;
-                            String name = task.getResult().getString("name") ;
-                            String image = task.getResult().getString("image");
-                            notifMap.put("sender_image",image);
-                            notifMap.put("blogPostId", blogPostId) ;
-                            notifMap.put("sender_name", name) ;
-                            notifMap.put("notif_type","contacted") ;
-                            notifMap.put("timestamp",FieldValue.serverTimestamp()) ;
-                            firebaseFirestore.collection("Users/"+user_id+"/ContactsInvites").document(currentUserId).set(notifMap) ;
+                                Map<String, Object> notifMap = new HashMap<>();
+                                String name = task.getResult().getString("name");
+                                String image = task.getResult().getString("image");
+                                notifMap.put("sender_image", image);
+                                notifMap.put("blogPostId", blogPostId);
+                                notifMap.put("sender_name", name);
+                                notifMap.put("notif_type", "contacted");
+                                notifMap.put("timestamp", FieldValue.serverTimestamp());
+                                notifMap.put("event_name",name_data) ;
+                                firebaseFirestore.collection("Users/" + user_id + "/ContactsInvites").add(notifMap);
+                            }
                         }
+                    });
+                }
+            });
+
+            holder.invite.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Map<String, Object> invitesMap = new HashMap<>();
+                    invitesMap.put("timestamp", FieldValue.serverTimestamp());
+
+                    holder.invite.setText("INVITED");
+                    holder.invite.setBackgroundColor(Color.LTGRAY);
+
+                    firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+
+                                Map<String, Object> notifMap = new HashMap<>();
+                                String name = task.getResult().getString("name");
+                                String image = task.getResult().getString("image");
+                                notifMap.put("sender_image", image);
+                                notifMap.put("blogPostId", blogPostId);
+                                notifMap.put("sender_name", name);
+                                notifMap.put("notif_type", "invited");
+                                notifMap.put("timestamp", FieldValue.serverTimestamp());
+                                notifMap.put("event_name",name_data) ;
+                                firebaseFirestore.collection("Users/" + user_id + "/ContactsInvites").add(notifMap);
+                            }
+                        }
+                    });
+                }
+            });
+
+            firebaseFirestore.collection("Users").document(currentUserId).collection("Bookmarks").document(blogPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
+                    if (task.getResult().exists()) {
+
+                        holder.bookmark_image.setImageResource(R.mipmap.action_bookmark_filled);
+
+                    } else {
+
+                        holder.bookmark_image.setImageResource(R.mipmap.action_bookmark_border);
                     }
-                }) ;
-            }
-        });
-
-        holder.invite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Map<String,Object> invitesMap = new HashMap<>() ;
-                invitesMap.put("timestamp", FieldValue.serverTimestamp()) ;
-
-                holder.inv_text.setText("INVITED");
-                holder.inv_text.setTextColor(0xFFFFFF);
-
-                firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-
-                            Map<String, Object> notifMap = new HashMap<>() ;
-                            String name = task.getResult().getString("name") ;
-                            String image = task.getResult().getString("image");
-                            notifMap.put("sender_image",image);
-                            notifMap.put("blogPostId", blogPostId) ;
-                            notifMap.put("sender_name", name) ;
-                            notifMap.put("notif_type","invited") ;
-                            notifMap.put("timestamp",FieldValue.serverTimestamp()) ;
-                            firebaseFirestore.collection("Users/"+user_id+"/ContactsInvites").document(currentUserId).set(notifMap) ;
-                        }
-                    }
-                }) ;
-            }
-        });
-
-        firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(blogPostId).addSnapshotListener(new EventListener<DocumentSnapshot>() {
-            @Override
-            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
-
-                if (documentSnapshot.exists()) {
-
-                    holder.bookmark_image.setImageDrawable(getDrawable(context,R.mipmap.action_bookmark_filled));
-
                 }
-                else {
+            });
 
-                    holder.bookmark_image.setImageDrawable(getDrawable(context,R.mipmap.action_bookmark_border));
-                }
-            }
-        });
+            if (context!=null) {
 
-        holder.bookmark_image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(blogPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                holder.bookmark_image.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    public void onClick(View v) {
 
-                        if (!task.getResult().exists()) {
+                        firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(blogPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                            Map<String, Object> bookmarksMap = new HashMap<>() ;
+                                if (!task.getResult().exists()) {
 
-                            bookmarksMap.put("timestamp",FieldValue.serverTimestamp()) ;
-                            firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(blogPostId).set(bookmarksMap) ;
+                                    Map<String, Object> bookmarksMap = new HashMap<>();
 
-                            Toast.makeText(context,"Added to your bookmarks.",Toast.LENGTH_SHORT).show();
+                                    bookmarksMap.put("timestamp", FieldValue.serverTimestamp());
+                                    firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(blogPostId).set(bookmarksMap);
 
-                        }
-                        else {
+                                    holder.bookmark_image.setImageResource(R.mipmap.action_bookmark_filled);
 
-                            firebaseFirestore.collection("Users/"+currentUserId+"Bookmarks").document(blogPostId).delete() ;
-                            Toast.makeText(context,"Removed from your bookmarks.",Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, "Added to your bookmarks.", Toast.LENGTH_SHORT).show();
 
-                        }
+                                } else {
+
+                                    holder.bookmark_image.setImageResource(R.mipmap.action_bookmark_border);
+
+                                    firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(blogPostId).delete();
+                                    Toast.makeText(context, "Removed from your bookmarks.", Toast.LENGTH_SHORT).show();
+
+                                }
+                            }
+                        });
+
+
                     }
                 });
-
-
-
             }
-        });
+        }
     }
 
     @Override
@@ -227,13 +245,11 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
 
         private TextView date_view ;
 
-        private CircleImageView blogUserImage ;
+
 
         private View mView ;
 
         private Button contact, invite ;
-
-        private TextView con_text, inv_text ;
 
         private ImageView bookmark_image ;
 
@@ -242,10 +258,9 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
 
             mView = itemView ;
 
+            blogUserImage = mView.findViewById(R.id.profile_image) ;
             contact = mView.findViewById(R.id.button_contact) ;
             invite = mView.findViewById(R.id.button_invite) ;
-            con_text = mView.findViewById(R.id.contact_text) ;
-            inv_text = mView.findViewById(R.id.invite_text) ;
             bookmark_image = mView.findViewById(R.id.image_bookmark) ;
 
         }
@@ -277,21 +292,12 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
             date_view.setText(date) ;
 
         }
-
         public void setUserImage(String image) {
-
-            blogUserImage = mView.findViewById(R.id.profile_image) ;
 
             RequestOptions placeholderoption = new RequestOptions() ;
             placeholderoption.placeholder(R.drawable.kindpng_4517876) ;
-            Glide.with(context).applyDefaultRequestOptions(placeholderoption).load(image).into(blogUserImage) ;
 
-        }
-
-        public void setView() {
-
-            con_text.setText("CONTACT");
-            inv_text.setText("INVITE") ;
+            if (context!=null) Glide.with(context).applyDefaultRequestOptions(placeholderoption).load(image).into(blogUserImage);
 
         }
     }
