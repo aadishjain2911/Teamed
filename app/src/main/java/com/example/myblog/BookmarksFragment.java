@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -127,19 +128,27 @@ public class BookmarksFragment extends Fragment {
                                             @Override
                                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                                                if (task.getResult().exists()) {
+                                                if (task.isSuccessful()) {
+                                                    if (task.getResult().exists()) {
 
-                                                    if (isFirstPageFirstLoad) {
+                                                        if (isFirstPageFirstLoad) {
 
-                                                        bookmarks_list.add(bookmarksPost);
+                                                            bookmarks_list.add(bookmarksPost);
 
-                                                    } else {
+                                                        } else {
 
-                                                        bookmarks_list.add(0, bookmarksPost);
+                                                            bookmarks_list.add(0, bookmarksPost);
 
+                                                        }
+
+                                                        bookmarksRecyclerAdapter.notifyDataSetChanged();
                                                     }
+                                                }
+                                                else {
 
-                                                    bookmarksRecyclerAdapter.notifyDataSetChanged();
+                                                    String error = task.getException().getMessage() ;
+                                                    Toast.makeText(context,"Error : " +error,Toast.LENGTH_SHORT).show();
+
                                                 }
                                             }
                                         });
@@ -178,7 +187,7 @@ public class BookmarksFragment extends Fragment {
                                 String bookmarksPostId = doc.getDocument().getId() ;
                                 final BookmarksPost bookmarksPost = doc.getDocument().toObject(BookmarksPost.class).withId(bookmarksPostId) ;
 
-                                firebaseFirestore.collection("Users"+currentUserId+"/Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                firebaseFirestore.collection("Users/"+currentUserId+"/Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                     @Override
                                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 

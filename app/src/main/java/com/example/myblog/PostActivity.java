@@ -46,7 +46,6 @@ public class PostActivity extends AppCompatActivity {
     Button post ;
         ImageButton image ;
         EditText name,description ;
-        Uri imageuri=null ;
 
         private ProgressBar postProgress ;
 
@@ -55,8 +54,6 @@ public class PostActivity extends AppCompatActivity {
         private StorageReference storage ;
         private FirebaseAuth mAuth ;
         private FirebaseFirestore firebaseFirestore ;
-
-       // private File compressedImageFile ;
 
         private String user_id ;
 
@@ -70,21 +67,11 @@ public class PostActivity extends AppCompatActivity {
             mAuth = FirebaseAuth.getInstance() ;
 
             post = (Button) findViewById(R.id.postButton) ;
-            image = (ImageButton) findViewById(R.id.imageButton) ;
             name = (EditText) findViewById(R.id.name) ;
             description = (EditText) findViewById(R.id.description) ;
             postProgress = (ProgressBar) findViewById(R.id.post_progress) ;
 
             user_id = mAuth.getCurrentUser().getUid() ;
-
-            image.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                CropImage.activity().setGuidelines(CropImageView.Guidelines.ON).setAspectRatio(2,1).start(PostActivity.this);
-
-                }
-            });
 
             post.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -103,54 +90,37 @@ public class PostActivity extends AppCompatActivity {
             final String nm = name.getText().toString().trim() ;
             final String desc = description.getText().toString().trim() ;
 
-            if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(desc) && imageuri!=null) {
+            if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(desc)) {
 
-                String randomName = random() ;
-
-                StorageReference imagepath = storage.child("blog_images").child(randomName) ;
-                imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+  //              String randomName = random() ;
 
 //                        File newimagefile = new File(imageuri.getPath()) ;
 //
 //                        compressedImageFile = new Compressor(PostActivity.this,newimagefile) ;
 
-                        final Task<Uri> downloadUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl();
 
-                        downloadUrl.addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
+                Map<String, Object> postInfo = new HashMap<>();
+                postInfo.put("name", nm);
+                postInfo.put("description", desc);
+                postInfo.put("user_id",user_id) ;
+                postInfo.put("timestamp",FieldValue.serverTimestamp()) ;
 
-                                String imagelink = uri.toString();
-                                Map<String, Object> postInfo = new HashMap<>();
-                                postInfo.put("name", nm);
-                                postInfo.put("description", desc);
-                                postInfo.put("user_id",user_id) ;
-                                postInfo.put("timestamp",FieldValue.serverTimestamp()) ;
+                firebaseFirestore.collection("Posts").add(postInfo).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentReference> task) {
+                        if (task.isSuccessful()) {
 
-                                firebaseFirestore.collection("Posts").add(postInfo).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<DocumentReference> task) {
-                                        if (task.isSuccessful()) {
+                            Toast.makeText(PostActivity.this, "Posted to blog.", Toast.LENGTH_SHORT).show();
+                            Intent mainintent = new Intent(PostActivity.this, MainActivity.class);
+                            startActivity(mainintent);
+                            finish();
 
-                                            Toast.makeText(PostActivity.this, "Posted to blog.", Toast.LENGTH_SHORT).show();
-                                            Intent mainintent = new Intent(PostActivity.this, MainActivity.class);
-                                            startActivity(mainintent);
-                                            finish();
+                        } else {
 
-                                        } else {
+                            String error = task.getException().getMessage();
+                            Toast.makeText(PostActivity.this, "Error : " + error, Toast.LENGTH_SHORT).show();
 
-                                            String error = task.getException().getMessage();
-                                            Toast.makeText(PostActivity.this, "Error : " + error, Toast.LENGTH_SHORT).show();
-
-                                        }
-                                    }
-                                });
-
-                            }
-                        });
+                        }
                     }
                 });
 
@@ -159,40 +129,39 @@ public class PostActivity extends AppCompatActivity {
             else {
                 if (TextUtils.isEmpty(nm)) name.setError("Please add name.");
                 if (TextUtils.isEmpty(desc)) description.setError("Please add description.");
-                if (imageuri==null) Toast.makeText(PostActivity.this, "Error : Please select an image.", Toast.LENGTH_SHORT).show();
             }
 
         }
 
-        @Override
-        protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-            super.onActivityResult(requestCode, resultCode, data);
+ //       @Override
+//        protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//            super.onActivityResult(requestCode, resultCode, data);
+//
+//            if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+//
+//                CropImage.ActivityResult result = CropImage.getActivityResult(data);
+//                if (resultCode == RESULT_OK) {
+//
+//                    imageuri = result.getUri();
+//                    image.setImageURI(imageuri) ;
+//
+//                } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+//
+//                    Exception error = result.getError();
+//                }
+//            }
+//
+//        }
 
-            if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
-
-                CropImage.ActivityResult result = CropImage.getActivityResult(data);
-                if (resultCode == RESULT_OK) {
-
-                    imageuri = result.getUri();
-                    image.setImageURI(imageuri) ;
-
-                } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-
-                    Exception error = result.getError();
-                }
-            }
-
-        }
-
-        public static String random() {
-            Random generator = new Random();
-            StringBuilder randomStringBuilder = new StringBuilder();
-            int randomLength = generator.nextInt(MAXLENGTH);
-            char tempChar;
-            for (int i = 0; i < randomLength; i++){
-                tempChar = (char) (generator.nextInt(96) + 32);
-                randomStringBuilder.append(tempChar);
-            }
-            return randomStringBuilder.toString();
-        }
+//        public static String random() {
+//            Random generator = new Random();
+//            StringBuilder randomStringBuilder = new StringBuilder();
+//            int randomLength = generator.nextInt(MAXLENGTH);
+//            char tempChar;
+//            for (int i = 0; i < randomLength; i++){
+//                tempChar = (char) (generator.nextInt(96) + 32);
+//                randomStringBuilder.append(tempChar);
+//            }
+//            return randomStringBuilder.toString();
+//        }
 }

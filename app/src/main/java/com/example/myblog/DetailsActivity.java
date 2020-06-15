@@ -15,11 +15,16 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -37,6 +42,7 @@ import com.google.firebase.storage.UploadTask;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,11 +56,17 @@ public class DetailsActivity extends AppCompatActivity {
 
     private boolean ischanged = false ;
 
+    private Spinner branchSpinner,yearSpinner ;
+
     private Uri imageuri=null ;
 
-    EditText name,branch,year ;
+    private File compressedImageFile ;
 
-    Button submit ;
+    private EditText name,presentSkills,pastExperiences,fieldsOfInterest ;
+
+    private String branch ,year ;
+
+    private Button submit ;
 
     private StorageReference storageReference ;
     private FirebaseAuth firebaseAuth ;
@@ -69,20 +81,37 @@ public class DetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_details);
 
-        firebaseAuth = FirebaseAuth.getInstance() ;
-        storageReference = FirebaseStorage.getInstance().getReference() ;
-        firebaseFirestore = FirebaseFirestore.getInstance() ;
+        firebaseAuth = FirebaseAuth.getInstance();
+        storageReference = FirebaseStorage.getInstance().getReference();
+        firebaseFirestore = FirebaseFirestore.getInstance();
 
-        user_id = firebaseAuth.getCurrentUser().getUid() ;
+        user_id = firebaseAuth.getCurrentUser().getUid();
 
-        image = (CircleImageView) findViewById(R.id.image) ;
-        name = (EditText) findViewById(R.id.name) ;
-        branch = (EditText) findViewById(R.id.branch) ;
-        year = (EditText) findViewById(R.id.year) ;
-        submit = (Button) findViewById(R.id.submit_details) ;
-        progressBar = (ProgressBar) findViewById(R.id.progressBar) ;
+        image = (CircleImageView) findViewById(R.id.image);
+        name = (EditText) findViewById(R.id.name);
+        branchSpinner = (Spinner) findViewById(R.id.branch);
+        yearSpinner = (Spinner) findViewById(R.id.year);
+        submit = (Button) findViewById(R.id.submit_details);
+        presentSkills = (EditText) findViewById(R.id.present_skills);
+        pastExperiences = (EditText) findViewById(R.id.past_experiences);
+        fieldsOfInterest = (EditText) findViewById(R.id.fields_interest);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
-        submit.setEnabled(false) ;
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.branches, R.layout.support_simple_spinner_dropdown_item);
+
+        adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+
+        branchSpinner.setGravity(Gravity.CENTER) ;
+
+        branchSpinner.setAdapter(adapter);
+
+        ArrayAdapter<CharSequence> adapter2 = ArrayAdapter.createFromResource(this, R.array.years, R.layout.support_simple_spinner_dropdown_item);
+
+        adapter2.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+
+        yearSpinner.setAdapter(adapter2);
+
+        submit.setEnabled(false);
 
         firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -92,35 +121,38 @@ public class DetailsActivity extends AppCompatActivity {
 
                     if (task.getResult().exists()) {
 
-                        progressBar.setVisibility(View.VISIBLE) ;
+                        progressBar.setVisibility(View.VISIBLE);
 
-                        String prev_name = task.getResult().getString("name") ;
-                        name.setText(prev_name) ;
-                        String prev_year = task.getResult().getString("year") ;
-                        year.setText(prev_year) ;
-                        String prev_branch = task.getResult().getString("branch") ;
-                        branch.setText(prev_branch) ;
-                        String prev_image = task.getResult().getString("image") ;
+                        String prev_name = task.getResult().getString("name");
+                        name.setText(prev_name);
+                        year = task.getResult().getString("year") ;
+                        branch = task.getResult().getString("branch");
+                        String prev_pastexp = task.getResult().getString("past_experiences");
+                        pastExperiences.setText(prev_pastexp);
+                        String prev_preskil = task.getResult().getString("present_skills");
+                        presentSkills.setText(prev_preskil);
+                        String prev_fieldint = task.getResult().getString("fields_interest");
+                        fieldsOfInterest.setText(prev_fieldint);
+                        String prev_image = task.getResult().getString("image");
 
-                        imageuri = Uri.parse(prev_image) ;
+                        imageuri = Uri.parse(prev_image);
 
-                        RequestOptions placeHolderrequest = new RequestOptions() ;
-                        placeHolderrequest.placeholder(R.drawable.kindpng_4517876) ;
+                        RequestOptions placeHolderrequest = new RequestOptions();
+                        placeHolderrequest.placeholder(R.drawable.kindpng_4517876);
 
                         Glide.with(DetailsActivity.this).setDefaultRequestOptions(placeHolderrequest).load(prev_image).into(image);
 
-                        progressBar.setVisibility(View.INVISIBLE) ;
+                        progressBar.setVisibility(View.INVISIBLE);
                     }
 
+                } else {
+
+                    String error = task.getException().getMessage();
+                    Toast.makeText(DetailsActivity.this, "Error : " + error, Toast.LENGTH_SHORT).show();
+
                 }
-                else {
 
-                    String error = task.getException().getMessage() ;
-                    Toast.makeText(DetailsActivity.this,"Error : "+error,Toast.LENGTH_SHORT).show() ;
-
-                }
-
-                submit.setEnabled(true) ;
+                submit.setEnabled(true);
 
             }
         });
@@ -129,25 +161,21 @@ public class DetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.M) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
                     if (ContextCompat.checkSelfPermission(DetailsActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 
-                        Toast.makeText(DetailsActivity.this,"Please provide permission to access storage.",Toast.LENGTH_SHORT).show();
-                        ActivityCompat.requestPermissions(DetailsActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},1) ;
+                        Toast.makeText(DetailsActivity.this, "Please provide permission to access storage.", Toast.LENGTH_SHORT).show();
+                        ActivityCompat.requestPermissions(DetailsActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+
+                    } else {
+
+                        CropImage.activity().setGuidelines(CropImageView.Guidelines.ON).setAspectRatio(1, 1).start(DetailsActivity.this);
 
                     }
+                } else {
 
-                    else {
-
-                        CropImage.activity().setGuidelines(CropImageView.Guidelines.ON).setAspectRatio(1,1).start(DetailsActivity.this);
-
-                    }
-                }
-
-                else {
-
-                    CropImage.activity().setGuidelines(CropImageView.Guidelines.ON).setAspectRatio(1,1).start(DetailsActivity.this);
+                    CropImage.activity().setGuidelines(CropImageView.Guidelines.ON).setAspectRatio(1, 1).start(DetailsActivity.this);
 
                 }
 
@@ -160,72 +188,126 @@ public class DetailsActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 final String nm = name.getText().toString();
-                final String yr = year.getText().toString();
-                final String br = branch.getText().toString();
+                final String pe = pastExperiences.getText().toString();
+                final String ps = presentSkills.getText().toString();
+                final String fi = fieldsOfInterest.getText().toString();
 
-                if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(yr) && !TextUtils.isEmpty(br)) {
+                if (TextUtils.isEmpty(nm))
+                    name.setError("Please enter name.");
+                if (TextUtils.isEmpty(pe))
+                    pastExperiences.setError("Please enter some past experiences.");
+                if (TextUtils.isEmpty(ps))
+                    presentSkills.setError("Please enter your present skills.");
+                if (TextUtils.isEmpty(fi))
+                    fieldsOfInterest.setError("Please enter your fields of interest.");
 
-                    progressBar.setVisibility(View.VISIBLE);
+                yearSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        year = (String) parent.getItemAtPosition(position);
 
-                    if (ischanged) {
+                        if (year == "None"|| year==null) Toast.makeText(getApplicationContext(), "Please select your year.", Toast.LENGTH_SHORT).show();
+                    }
 
-                        StorageReference imagepath = storageReference.child("profile_images").child(user_id + ".jpg");
-                        imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        Toast.makeText(getApplicationContext(), "Please select your year.", Toast.LENGTH_SHORT).show();
+                    }
+                });
 
-                                storeData(taskSnapshot, nm, yr, br);
+                branchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                            }
-                        });
+                        branch = (String) parent.getItemAtPosition(position);
+                        if (branch == "None" || branch == null) Toast.makeText(getApplicationContext(), "Please select your branch.", Toast.LENGTH_SHORT).show();
 
                     }
-                    else {
-                        String imagelink = imageuri.toString();
 
-                        Map<String, String> userInfo = new HashMap<>();
-                        userInfo.put("name", nm);
-                        userInfo.put("year", yr);
-                        userInfo.put("branch", br);
-                        userInfo.put("image", imagelink);
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
 
-                        firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(getApplicationContext(), "Please select your branch.", Toast.LENGTH_SHORT).show();
+                    }
 
-                                if (task.isSuccessful()) {
 
-                                    Toast.makeText(DetailsActivity.this, "Details updated successfully.", Toast.LENGTH_SHORT).show();
-                                    Intent mainintent = new Intent(DetailsActivity.this, MainActivity.class);
-                                    startActivity(mainintent);
-                                    finish();
+                });
 
-                                } else {
 
-                                    String error = task.getException().getMessage();
-                                    Toast.makeText(DetailsActivity.this, "Error : " + error, Toast.LENGTH_SHORT).show();
+                if (year!=null && branch!=null) {
+
+                    if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(pe) && !TextUtils.isEmpty(ps) && !TextUtils.isEmpty(fi)) {
+
+                        progressBar.setVisibility(View.VISIBLE);
+
+                        if (ischanged) {
+
+                            StorageReference imagepath = storageReference.child("profile_images").child(user_id + ".jpg");
+                            imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                                    storeData(taskSnapshot, nm, year, branch, pe, ps, fi);
 
                                 }
+                            });
 
-                            }
-                        });
+                        } else {
+                            String imagelink = imageuri.toString();
+
+                            Map<String, String> userInfo = new HashMap<>();
+                            userInfo.put("name", nm);
+                            userInfo.put("year", year);
+                            userInfo.put("branch", branch);
+                            userInfo.put("past_experiences", pe);
+                            userInfo.put("present_skills", ps);
+                            userInfo.put("fields_interest", fi);
+                            userInfo.put("image", imagelink);
+
+                            firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+
+                                    if (task.isSuccessful()) {
+
+                                        Toast.makeText(DetailsActivity.this, "Details updated successfully.", Toast.LENGTH_SHORT).show();
+                                        Intent mainintent = new Intent(DetailsActivity.this, MainActivity.class);
+                                        startActivity(mainintent);
+                                        finish();
+
+                                    } else {
+
+                                        String error = task.getException().getMessage();
+                                        Toast.makeText(DetailsActivity.this, "Error : " + error, Toast.LENGTH_SHORT).show();
+
+                                    }
+
+                                }
+                            });
+                        }
+
+                        progressBar.setVisibility(View.INVISIBLE);
+
                     }
-
-                    progressBar.setVisibility(View.INVISIBLE);
                 }
-                else {
-
-                    if (TextUtils.isEmpty(nm)) name.setError("Please enter name.");
-                    if (TextUtils.isEmpty(yr)) year.setError("Please enter year.");
-                    if (TextUtils.isEmpty(br)) year.setError("Please enter branch.");
-                }
-
             }
-        });
 
+        });
     }
 
-    private void storeData( UploadTask.TaskSnapshot taskSnapshot,final String nm,final String yr,final String br) {
+    private int getYear(Spinner yearSpinner, String prev_year) {
+        int index = 0;
+
+        for (int i=0;i<yearSpinner.getCount();i++){
+            if (yearSpinner.getItemAtPosition(i).equals(prev_year)){
+                index = i;
+                break ;
+            }
+        }
+        return index;
+    }
+
+    private void storeData( UploadTask.TaskSnapshot taskSnapshot,final String nm,final String yr,final String br,final String pe,final String ps,final String fi) {
 
         Task<Uri> downloadUrl = taskSnapshot.getMetadata().getReference().getDownloadUrl() ;
 
@@ -239,6 +321,9 @@ public class DetailsActivity extends AppCompatActivity {
                 userInfo.put("name",nm) ;
                 userInfo.put("year",yr) ;
                 userInfo.put("branch",br) ;
+                userInfo.put("past_experiences",pe) ;
+                userInfo.put("present_skills",ps) ;
+                userInfo.put("fields_interest",fi) ;
                 userInfo.put("image",imagelink) ;
 
                 firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -288,4 +373,17 @@ public class DetailsActivity extends AppCompatActivity {
         }
 
     }
+    private int getIndex(Spinner branchSpinner,String branch) {
+
+        int index = 0;
+
+        for (int i=0;i<branchSpinner.getCount();i++){
+            if (branchSpinner.getItemAtPosition(i).equals(branch)){
+                index = i;
+                break ;
+            }
+        }
+        return index;
+    }
 }
+

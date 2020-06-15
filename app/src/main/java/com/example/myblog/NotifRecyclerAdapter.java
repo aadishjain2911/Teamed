@@ -70,7 +70,7 @@ public class NotifRecyclerAdapter extends RecyclerView.Adapter<NotifRecyclerAdap
         holder.setTime(dateString);
 
 
-        if (currentUserId != null) {
+        if (type!=null) {
 
             holder.addName(sendername);
 
@@ -101,7 +101,7 @@ public class NotifRecyclerAdapter extends RecyclerView.Adapter<NotifRecyclerAdap
             super(itemview) ;
 
             mView = itemview ;
-
+            sender_imageview = mView.findViewById(R.id.notif_image) ;
         }
 
         public void setTime(String timestamp) {
@@ -126,7 +126,11 @@ public class NotifRecyclerAdapter extends RecyclerView.Adapter<NotifRecyclerAdap
 
             RequestOptions placeholderoption = new RequestOptions() ;
             placeholderoption.placeholder(R.drawable.kindpng_4517876) ;
-            Glide.with(context).applyDefaultRequestOptions(placeholderoption).load(sender_image).into(sender_imageview) ;
+            Glide
+                    .with(context)
+                    .applyDefaultRequestOptions(placeholderoption)
+                    .load(sender_image)
+                    .into(sender_imageview) ;
 
         }
     }

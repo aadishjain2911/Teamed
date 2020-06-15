@@ -163,11 +163,11 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
                 }
             });
 
-            firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(bookmarksPostId).addSnapshotListener(new EventListener<DocumentSnapshot>() {
+            firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
-                public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                    if (documentSnapshot.exists()) {
+                    if (task.getResult().exists()) {
 
                         holder.bookmark_image.setImageResource(R.mipmap.action_bookmark_filled);
 
