@@ -96,7 +96,7 @@
         android:id="@+id/account_already"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="570dp"
+        android:layout_marginTop="30dp"
         android:background="@drawable/common_google_signin_btn_icon_dark_normal_background"
         android:text="Already have an account?"
         android:textColor="#FFF44336"
@@ -104,7 +104,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/signInButton" />
 
     <ImageView
         android:id="@+id/imageView"
@@ -130,6 +130,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/signInButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/create_account" />
+
     <EditText
         android:id="@+id/confirm_password"
         android:layout_width="369dp"
@@ -147,4 +157,5 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

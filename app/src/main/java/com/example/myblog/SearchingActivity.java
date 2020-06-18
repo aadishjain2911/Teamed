@@ -26,7 +26,12 @@ import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +48,14 @@ public class SearchingActivity extends AppCompatActivity {
 
     private EditText search_text ;
 
-    private DatabaseReference databaseReference ;
+    private FirebaseFirestore firebaseFirestore;
     private FirebaseAuth firebaseAuth ;
 
     private FirebaseRecyclerOptions<Users> firebaseRecyclerOptions ;
 
     private FirebaseRecyclerAdapter adapter ;
+
+    private SearchRecyclerAdapter searchRecyclerAdapter ;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,40 +69,14 @@ public class SearchingActivity extends AppCompatActivity {
         search_text = (EditText) findViewById(R.id.search_field) ;
         search_result = (RecyclerView) findViewById(R.id.search_recycler) ;
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("Users");
+        firebaseFirestore = FirebaseFirestore.getInstance() ;
         firebaseAuth = FirebaseAuth.getInstance() ;
+
+        searchRecyclerAdapter = new SearchRecyclerAdapter(usersList,getApplicationContext()) ;
+
         search_result.setHasFixedSize(true);
         search_result.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-
-        Query searchQuery = databaseReference.orderByChild("name") ;
-
-        firebaseRecyclerOptions = new FirebaseRecyclerOptions.Builder<Users>().setQuery(searchQuery,Users.class).build() ;
-
-        adapter = new FirebaseRecyclerAdapter<Users, UsersViewHolder>(firebaseRecyclerOptions) {
-            @Override
-            public UsersViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.search_list_layout, parent, false);
-
-                return new UsersViewHolder(view);
-            }
-
-            @Override
-            protected void onBindViewHolder(UsersViewHolder holder, final int position, Users model) {
-                if (firebaseAuth.getCurrentUser()!=null) {
-
-                    holder.setDetails(model.getName(), model.getBranch(), model.getYear(), model.getImage());
-
-                }
-
-            }
-
-            @Override
-            public int getItemCount() {
-                return usersList.size() ;
-            }
-        };
-
-        search_result.setAdapter(adapter);
+        search_result.setAdapter(searchRecyclerAdapter) ;
 
         search_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -103,67 +84,42 @@ public class SearchingActivity extends AppCompatActivity {
 
                 String searchText = search_text.getText().toString() ;
 
-                Query searchQuery = databaseReference.orderByChild("name").startAt(searchText).endAt(searchText+"\uf8ff");
+                Query searchQuery ;
 
-                firebaseRecyclerOptions = new FirebaseRecyclerOptions.Builder<Users>().setQuery(searchQuery,Users.class).build() ;
+                searchQuery = firebaseFirestore.collection("Users").orderBy("name").startAt(searchText).endAt("\uf8ff");
 
-                adapter = new FirebaseRecyclerAdapter<Users, UsersViewHolder>(firebaseRecyclerOptions) {
-                    @Override
-                    public UsersViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.search_list_layout, parent, false);
+                if (searchQuery != null) {
 
-                        return new UsersViewHolder(view);
-                    }
+                    searchQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
+                        @Override
+                        public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 
-                    @Override
-                    protected void onBindViewHolder(UsersViewHolder holder, final int position, Users model) {
-                        if (firebaseAuth.getCurrentUser()!=null) {
+                            if (queryDocumentSnapshots.size()!=0) {
 
-                            holder.setDetails(model.getName(), model.getBranch(), model.getYear(), model.getImage());
+                                for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
 
+                                    if (doc.getType() == DocumentChange.Type.ADDED) {
+
+                                        Users users = doc.getDocument().toObject(Users.class) ;
+
+                                        usersList.add(users) ;
+
+                                        searchRecyclerAdapter.notifyDataSetChanged();
+                                    }
+                                }
+
+                            }
+
+                            else {
+
+                                Toast.makeText(SearchingActivity.this, "No results found.", Toast.LENGTH_SHORT).show();
+                                
+                            }
                         }
+                    });
 
-                    }
-
-                    @Override
-                    public int getItemCount() {
-                        return usersList.size();
-                    }
-                };
-
-                search_result.setAdapter(adapter);
-
+                }
             }
         });
-    }
-
-    public class UsersViewHolder extends RecyclerView.ViewHolder {
-
-        private View mView ;
-
-        public UsersViewHolder(View itemView) {
-            super(itemView);
-
-            mView = itemView ;
-
-        }
-
-        public void setDetails(String name,String branch,String year,String image) {
-
-            TextView search_name = (TextView) mView.findViewById(R.id.search_name) ;
-            TextView search_year = (TextView) mView.findViewById(R.id.search_year) ;
-            TextView search_branch = (TextView) mView.findViewById(R.id.search_branch) ;
-            CircleImageView search_image = (CircleImageView) mView.findViewById(R.id.search_profile_image) ;
-
-            search_name.setText(name) ;
-            search_branch.setText(branch) ;
-            search_year.setText(year) ;
-
-            RequestOptions placeholderoption = new RequestOptions() ;
-            placeholderoption.placeholder(R.drawable.kindpng_4517876) ;
-
-            Glide.with(getApplicationContext()).applyDefaultRequestOptions(placeholderoption).load(image).into(search_image);
-
-        }
     }
 }

@@ -111,7 +111,7 @@ public class HomeFragment extends Fragment {
                         @Override
                         public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 
-                            if (queryDocumentSnapshots.size()!=0) {
+                            if (!queryDocumentSnapshots.isEmpty()) {
 
                                 if (isFirstPageFirstLoad) {
 

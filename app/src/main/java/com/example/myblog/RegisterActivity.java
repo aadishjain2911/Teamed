@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -26,6 +27,8 @@ public class RegisterActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth ;
 
+    private SignInButton signInButton ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +42,7 @@ public class RegisterActivity extends AppCompatActivity {
         alreadyAccount = (Button) findViewById(R.id.account_already) ;
         createAccount = (Button) findViewById(R.id.create_account) ;
         progressBar = (ProgressBar) findViewById(R.id.progress) ;
+        signInButton = (SignInButton) findViewById(R.id.signInButton) ;
 
         createAccount.setOnClickListener(new View.OnClickListener() {
             @Override
