@@ -201,41 +201,13 @@ public class DetailsActivity extends AppCompatActivity {
                 if (TextUtils.isEmpty(fi))
                     fieldsOfInterest.setError("Please enter your fields of interest.");
 
-                yearSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        year = (String) parent.getItemAtPosition(position);
+                branch = branchSpinner.getSelectedItem().toString() ;
+                year = yearSpinner.getSelectedItem().toString() ;
 
-                        if (year == "None"|| year==null) Toast.makeText(getApplicationContext(), "Please select your year.", Toast.LENGTH_SHORT).show();
-                    }
+                if (branch == "None" || branch == null) Toast.makeText(getApplicationContext(), "Please select your branch.", Toast.LENGTH_SHORT).show();
+                else if (year == "None"|| year==null) Toast.makeText(getApplicationContext(), "Please select your year.", Toast.LENGTH_SHORT).show();
 
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        Toast.makeText(getApplicationContext(), "Please select your year.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                branchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                        branch = (String) parent.getItemAtPosition(position);
-                        if (branch == "None" || branch == null) Toast.makeText(getApplicationContext(), "Please select your branch.", Toast.LENGTH_SHORT).show();
-
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-
-                        Toast.makeText(getApplicationContext(), "Please select your branch.", Toast.LENGTH_SHORT).show();
-                    }
-
-
-                });
-
-
-
-                if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(pe) && !TextUtils.isEmpty(ps) && !TextUtils.isEmpty(fi) && branch!=null && year!=null) {
+                else if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(pe) && !TextUtils.isEmpty(ps) && !TextUtils.isEmpty(fi) ) {
 
                     progressBar.setVisibility(View.VISIBLE);
 
