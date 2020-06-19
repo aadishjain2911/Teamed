@@ -87,22 +87,28 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" /><![CDATA[
     tools:layout_editor_absoluteX="90dp"
     tools:layout_editor_absoluteY="440dp" />
 
+
+
+
+
+
+    ]]>
 
     <Button
         android:id="@+id/account_already"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/common_google_signin_btn_icon_dark_normal_background"
         android:text="Already have an account?"
         android:textColor="#FFF44336"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/signInButton" />
 
@@ -118,7 +124,7 @@
         app:srcCompat="@android:drawable/btn_star_big_on" />
 
     <ProgressBar
-        android:id="@+id/progress"
+        android:id="@+id/registerProgress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

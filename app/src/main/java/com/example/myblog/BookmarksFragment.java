@@ -110,53 +110,55 @@ public class BookmarksFragment extends Fragment {
                         @Override
                         public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 
-                            if (isFirstPageFirstLoad) {
+                            if (e==null) {
 
-                                lastVisible = queryDocumentSnapshots.getDocuments().get(queryDocumentSnapshots.size() - 1);
+                                if (isFirstPageFirstLoad) {
 
-                            }
-                            if (queryDocumentSnapshots != null) {
+                                    lastVisible = queryDocumentSnapshots.getDocuments().get(queryDocumentSnapshots.size() - 1);
 
-                                for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
+                                }
+                                if (queryDocumentSnapshots != null) {
 
-                                    if (doc.getType() == DocumentChange.Type.ADDED) {
+                                    for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
 
-                                        String bookmarksPostId = doc.getDocument().getId() ;
-                                        final BookmarksPost bookmarksPost = doc.getDocument().toObject(BookmarksPost.class).withId(bookmarksPostId) ;
+                                        if (doc.getType() == DocumentChange.Type.ADDED) {
 
-                                        firebaseFirestore.collection("Users/"+currentUserId+"/Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            String bookmarksPostId = doc.getDocument().getId();
+                                            final BookmarksPost bookmarksPost = doc.getDocument().toObject(BookmarksPost.class).withId(bookmarksPostId);
 
-                                                if (task.isSuccessful()) {
-                                                    if (task.getResult().exists()) {
+                                            firebaseFirestore.collection("Users/" + currentUserId + "/Bookmarks").document(bookmarksPostId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                                                        if (isFirstPageFirstLoad) {
+                                                    if (task.isSuccessful()) {
+                                                        if (task.getResult().exists()) {
 
-                                                            bookmarks_list.add(bookmarksPost);
+                                                            if (isFirstPageFirstLoad) {
 
-                                                        } else {
+                                                                bookmarks_list.add(bookmarksPost);
 
-                                                            bookmarks_list.add(0, bookmarksPost);
+                                                            } else {
 
+                                                                bookmarks_list.add(0, bookmarksPost);
+
+                                                            }
+
+                                                            bookmarksRecyclerAdapter.notifyDataSetChanged();
                                                         }
+                                                    } else {
 
-                                                        bookmarksRecyclerAdapter.notifyDataSetChanged();
+                                                        String error = task.getException().getMessage();
+                                                        Toast.makeText(context, "Error : " + error, Toast.LENGTH_SHORT).show();
+
                                                     }
                                                 }
-                                                else {
-
-                                                    String error = task.getException().getMessage() ;
-                                                    Toast.makeText(context,"Error : " +error,Toast.LENGTH_SHORT).show();
-
-                                                }
-                                            }
-                                        });
+                                            });
+                                        }
                                     }
                                 }
-                            }
 
-                            isFirstPageFirstLoad = false ;
+                                isFirstPageFirstLoad = false;
+                            }
                         }
                     });
                 }

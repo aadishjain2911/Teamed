@@ -82,6 +82,9 @@ public class SearchingActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
+                usersList.clear();
+                searchRecyclerAdapter.notifyDataSetChanged();
+
                 String searchText = search_text.getText().toString() ;
 
                 Query searchQuery ;
@@ -94,7 +97,7 @@ public class SearchingActivity extends AppCompatActivity {
                         @Override
                         public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
 
-                            if (queryDocumentSnapshots.size()!=0) {
+                            if (!queryDocumentSnapshots.isEmpty()) {
 
                                 for (DocumentChange doc : queryDocumentSnapshots.getDocumentChanges()) {
 

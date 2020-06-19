@@ -95,7 +95,7 @@ public class DetailsActivity extends AppCompatActivity {
         presentSkills = (EditText) findViewById(R.id.present_skills);
         pastExperiences = (EditText) findViewById(R.id.past_experiences);
         fieldsOfInterest = (EditText) findViewById(R.id.fields_interest);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar = (ProgressBar) findViewById(R.id.detailsProgressBar);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.branches, R.layout.support_simple_spinner_dropdown_item);
 
@@ -234,61 +234,58 @@ public class DetailsActivity extends AppCompatActivity {
                 });
 
 
-                if (year!=null && branch!=null) {
 
-                    if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(pe) && !TextUtils.isEmpty(ps) && !TextUtils.isEmpty(fi)) {
+                if (!TextUtils.isEmpty(nm) && !TextUtils.isEmpty(pe) && !TextUtils.isEmpty(ps) && !TextUtils.isEmpty(fi) && branch!=null && year!=null) {
 
-                        progressBar.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.VISIBLE);
 
-                        if (ischanged) {
+                    if (ischanged) {
 
-                            StorageReference imagepath = storageReference.child("profile_images").child(user_id + ".jpg");
-                            imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                @Override
-                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        StorageReference imagepath = storageReference.child("profile_images").child(user_id + ".jpg");
+                        imagepath.putFile(imageuri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                                    storeData(taskSnapshot, nm, year, branch, pe, ps, fi);
+                                storeData(taskSnapshot, nm, year, branch, pe, ps, fi);
 
-                                }
-                            });
+                            }
+                        });
 
-                        } else {
-                            String imagelink = imageuri.toString();
+                    } else {
+                        String imagelink = imageuri.toString();
 
-                            Map<String, String> userInfo = new HashMap<>();
-                            userInfo.put("name", nm);
-                            userInfo.put("year", year);
-                            userInfo.put("branch", branch);
-                            userInfo.put("past_experiences", pe);
-                            userInfo.put("present_skills", ps);
-                            userInfo.put("fields_interest", fi);
-                            userInfo.put("image", imagelink);
+                        Map<String, String> userInfo = new HashMap<>();
+                        userInfo.put("name", nm);
+                        userInfo.put("year", year);
+                        userInfo.put("branch", branch);
+                        userInfo.put("past_experiences", pe);
+                        userInfo.put("present_skills", ps);
+                        userInfo.put("fields_interest", fi);
+                        userInfo.put("image", imagelink);
 
-                            firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
+                        firebaseFirestore.collection("Users").document(user_id).set(userInfo).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
 
-                                    if (task.isSuccessful()) {
+                                if (task.isSuccessful()) {
 
-                                        Toast.makeText(DetailsActivity.this, "Details updated successfully.", Toast.LENGTH_SHORT).show();
-                                        Intent mainintent = new Intent(DetailsActivity.this, MainActivity.class);
-                                        startActivity(mainintent);
-                                        finish();
+                                    Toast.makeText(DetailsActivity.this, "Details updated successfully.", Toast.LENGTH_SHORT).show();
+                                    Intent mainintent = new Intent(DetailsActivity.this, MainActivity.class);
+                                    startActivity(mainintent);
+                                    finish();
 
-                                    } else {
+                                } else {
 
-                                        String error = task.getException().getMessage();
-                                        Toast.makeText(DetailsActivity.this, "Error : " + error, Toast.LENGTH_SHORT).show();
-
-                                    }
+                                    String error = task.getException().getMessage();
+                                    Toast.makeText(DetailsActivity.this, "Error : " + error, Toast.LENGTH_SHORT).show();
 
                                 }
-                            });
-                        }
 
-                        progressBar.setVisibility(View.INVISIBLE);
-
+                            }
+                        });
                     }
+
+                    progressBar.setVisibility(View.INVISIBLE);
                 }
             }
 

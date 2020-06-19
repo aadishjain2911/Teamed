@@ -41,7 +41,7 @@ public class RegisterActivity extends AppCompatActivity {
         confirmPassword = (EditText) findViewById(R.id.confirm_password) ;
         alreadyAccount = (Button) findViewById(R.id.account_already) ;
         createAccount = (Button) findViewById(R.id.create_account) ;
-        progressBar = (ProgressBar) findViewById(R.id.progress) ;
+        progressBar = (ProgressBar) findViewById(R.id.registerProgress) ;
         signInButton = (SignInButton) findViewById(R.id.signInButton) ;
 
         createAccount.setOnClickListener(new View.OnClickListener() {
@@ -109,7 +109,6 @@ public class RegisterActivity extends AppCompatActivity {
                     }
 
                 }
-
 
             }
         });
