@@ -122,11 +122,24 @@
         android:id="@+id/year"
         android:layout_width="160dp"
         android:layout_height="40dp"
-        android:layout_marginStart="20dp"
+        android:layout_marginStart="124dp"
         android:layout_marginTop="20dp"
         android:background="@drawable/input_outline"
         android:entries="@array/years"
         android:textAlignment="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/branch" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="39dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="50dp"
+        android:text="Year :"
+        android:textSize="28sp"
+        app:layout_constraintEnd_toStartOf="@+id/year"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/branch" />
     tools:layout_editor_absoluteX="90dp"
