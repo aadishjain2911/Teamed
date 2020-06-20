@@ -106,26 +106,31 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
                 @Override
                 public void onClick(View v) {
 
-                    holder.contact.setText("CONTACTED");
-                    holder.contact.setBackgroundColor(Color.LTGRAY);
+                    if (currentUserId == user_id) { Toast.makeText(context,"This post has been added by you.",Toast.LENGTH_SHORT).show(); }
 
-                    firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
+                    else {
 
-                                Map<String, Object> notifMap = new HashMap<>();
-                                String name = task.getResult().getString("name");
-                                String image = task.getResult().getString("image");
-                                notifMap.put("sender_image", image);
-                                notifMap.put("blogPostId", bookmarksPostId);
-                                notifMap.put("sender_name", name);
-                                notifMap.put("notif_type", "contacted");
-                                notifMap.put("timestamp", FieldValue.serverTimestamp());
-                                firebaseFirestore.collection("Users/" + user_id + "/ContactsInvites").document(currentUserId).set(notifMap);
+                        holder.contact.setText("CONTACTED");
+                        holder.contact.setBackgroundColor(Color.LTGRAY);
+
+                        firebaseFirestore.collection("Users").document(currentUserId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+
+                                    Map<String, Object> notifMap = new HashMap<>();
+                                    String name = task.getResult().getString("name");
+                                    String image = task.getResult().getString("image");
+                                    notifMap.put("sender_image", image);
+                                    notifMap.put("blogPostId", bookmarksPostId);
+                                    notifMap.put("sender_name", name);
+                                    notifMap.put("notif_type", "contacted");
+                                    notifMap.put("timestamp", FieldValue.serverTimestamp());
+                                    firebaseFirestore.collection("Users/" + user_id + "/ContactsInvites").document(currentUserId).set(notifMap);
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             });
 
@@ -133,33 +138,38 @@ public class BookmarksRecyclerAdapter extends RecyclerView.Adapter<BookmarksRecy
                 @Override
                 public void onClick(View v) {
 
-                    Map<String, Object> invitesMap = new HashMap<>();
-                    invitesMap.put("timestamp", FieldValue.serverTimestamp());
+                    if (currentUserId == user_id) { Toast.makeText(context,"This post has been added by you.",Toast.LENGTH_SHORT).show(); }
 
-                    holder.invite.setText("INVITED");
-                    holder.invite.setBackgroundColor(Color.LTGRAY);
+                    else {
 
-                    firebaseFirestore
-                            .collection("Users")
-                            .document(currentUserId)
-                            .get()
-                            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
+                        Map<String, Object> invitesMap = new HashMap<>();
+                        invitesMap.put("timestamp", FieldValue.serverTimestamp());
 
-                                Map<String, Object> notifMap = new HashMap<>();
-                                String name = task.getResult().getString("name");
-                                String image = task.getResult().getString("image");
-                                notifMap.put("sender_image", image);
-                                notifMap.put("blogPostId", bookmarksPostId);
-                                notifMap.put("sender_name", name);
-                                notifMap.put("notif_type", "invited");
-                                notifMap.put("timestamp", FieldValue.serverTimestamp());
-                                firebaseFirestore.collection("Users/" + user_id + "/ContactsInvites").document(currentUserId).set(notifMap);
-                            }
-                        }
-                    });
+                        holder.invite.setText("INVITED");
+                        holder.invite.setBackgroundColor(Color.LTGRAY);
+
+                        firebaseFirestore
+                                .collection("Users")
+                                .document(currentUserId)
+                                .get()
+                                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        if (task.isSuccessful()) {
+
+                                            Map<String, Object> notifMap = new HashMap<>();
+                                            String name = task.getResult().getString("name");
+                                            String image = task.getResult().getString("image");
+                                            notifMap.put("sender_image", image);
+                                            notifMap.put("blogPostId", bookmarksPostId);
+                                            notifMap.put("sender_name", name);
+                                            notifMap.put("notif_type", "invited");
+                                            notifMap.put("timestamp", FieldValue.serverTimestamp());
+                                            firebaseFirestore.collection("Users/" + user_id + "/ContactsInvites").document(currentUserId).set(notifMap);
+                                        }
+                                    }
+                                });
+                    }
                 }
             });
 

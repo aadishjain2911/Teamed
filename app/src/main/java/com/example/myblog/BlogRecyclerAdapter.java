@@ -121,7 +121,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
                 @Override
                 public void onClick(View v) {
 
-                    if (currentUserId == blogPostId) { Toast.makeText(context,"This post has been added by you.",Toast.LENGTH_SHORT).show(); }
+                    if (currentUserId == user_id) { Toast.makeText(context,"This post has been added by you.",Toast.LENGTH_SHORT).show(); }
 
                     else {
 
@@ -154,7 +154,7 @@ public class BlogRecyclerAdapter extends RecyclerView.Adapter<BlogRecyclerAdapte
                 @Override
                 public void onClick(View v) {
 
-                    if (currentUserId == blogPostId) { Toast.makeText(context,"This post has been added by you.",Toast.LENGTH_SHORT).show(); }
+                    if (currentUserId == user_id) { Toast.makeText(context,"This post has been added by you.",Toast.LENGTH_SHORT).show(); }
 
                     else {
 
