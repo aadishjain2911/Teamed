@@ -1,31 +1,18 @@
 package com.example.myblog;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.model.Model;
-import com.bumptech.glide.request.RequestOptions;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -65,7 +52,7 @@ public class SearchingActivity extends AppCompatActivity {
 
         usersList = new ArrayList<>() ;
 
-        search_button = (CircleImageView) findViewById(R.id.search_button) ;
+        search_button = (CircleImageView) findViewById(R.id.event_search_button) ;
         search_text = (EditText) findViewById(R.id.search_field) ;
         search_result = (RecyclerView) findViewById(R.id.search_recycler) ;
 
@@ -89,7 +76,7 @@ public class SearchingActivity extends AppCompatActivity {
 
                 Query searchQuery ;
 
-                searchQuery = firebaseFirestore.collection("Users").orderBy("name").startAt(searchText.toUpperCase()).endAt(searchText.toLowerCase()+"\uf8ff");
+                searchQuery = firebaseFirestore.collection("Users").orderBy("name").startAt(searchText).endAt(searchText+"\uf8ff");
 
                 if (searchQuery != null) {
 

@@ -103,7 +103,7 @@ public class BookmarksFragment extends Fragment {
 
 
 
-                Query firstQuery = firebaseFirestore.collection("Posts").orderBy("timestamp", Query.Direction.DESCENDING).limit(3) ;
+                Query firstQuery = firebaseFirestore.collection("Posts").orderBy("timestamp", Query.Direction.DESCENDING).limit(10) ;
 
                 if (firstQuery != null) {
                     firstQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
@@ -173,7 +173,7 @@ public class BookmarksFragment extends Fragment {
         Query nextQuery = firebaseFirestore.collection("Posts").
                 orderBy("timestamp", Query.Direction.DESCENDING).
                 startAfter(lastVisible).
-                limit(3) ;
+                limit(10) ;
         if (nextQuery != null) {
             nextQuery.addSnapshotListener(getActivity(),new EventListener<QuerySnapshot>() {
                 @Override
