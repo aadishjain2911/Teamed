@@ -89,7 +89,7 @@ public class SearchingActivity extends AppCompatActivity {
 
                 Query searchQuery ;
 
-                searchQuery = firebaseFirestore.collection("Users").orderBy("name").startAt(searchText).endAt("\uf8ff");
+                searchQuery = firebaseFirestore.collection("Users").orderBy("name").startAt(searchText.toUpperCase()).endAt(searchText.toLowerCase()+"\uf8ff");
 
                 if (searchQuery != null) {
 

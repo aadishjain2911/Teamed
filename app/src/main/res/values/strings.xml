@@ -4,7 +4,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string-array name="branches">
-        <item>None</item>
+        <item>Branch</item>
         <item>Aerospace Engineering</item>
         <item>Biosciences and Bioengineering</item>
         <item>Chemical Engineering</item>
@@ -22,7 +22,7 @@
         <item>Industrial Design Centre</item>
     </string-array>
     <string-array name="years">
-        <item>None</item>
+        <item>Year</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>
