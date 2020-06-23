@@ -52,7 +52,7 @@ public class SearchingActivity extends AppCompatActivity {
 
         usersList = new ArrayList<>() ;
 
-        search_button = (CircleImageView) findViewById(R.id.event_search_button) ;
+        search_button = (CircleImageView) findViewById(R.id.search_button) ;
         search_text = (EditText) findViewById(R.id.search_field) ;
         search_result = (RecyclerView) findViewById(R.id.search_recycler) ;
 
